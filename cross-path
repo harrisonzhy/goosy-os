@@ -1,0 +1,2 @@
+# cross compiler path
+$HOME/opt/cross/bin/$TARGET-gcc
