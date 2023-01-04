@@ -8,14 +8,14 @@ disk_load:
     mov al, dh          ; read `dh` sectors
     mov cl, 0x02        ; read from sector 2 (sector 1 is boot)
     mov ch, 0x00        ; read from cylinder 0
-    mov dh, 0x0         ; read from head 0
+    mov dh, 0x00        ; read from head 0
 
-    int 0x13            ; BIOS stuff
-    jc disk_error       ; jump if carry bit is 1 (error)
+    int 0x13            ; BIOS interrupt for disk access
+    jc disk_error       ; error if carry bit is set
 
     pop dx              ; original num sectors to read
     cmp al, dh          ; set `al` to num sectors actually read
-    jne sector_error    ; jump if al and d_ are not equal (error)
+    jne sector_error    ; error if al and d_ are not equal
     popa
     ret
 
