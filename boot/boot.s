@@ -4,23 +4,22 @@ MBFLAGS  equ  MBALIGN | MEMINFO  ; multiboot flag field
 MAGIC    equ  0X1BADB002         ; magic number
 CHECKSUM equ -(MAGIC+MBFLAGS)    ; prove multiboot status
 
-; constants are defined as in the multiboot standard
-; MAGIC is in the first 8 KiB of kernel, in an isolated section
-
+; declare header as in the multiboot standard
+; MAGIC is in the first 8 KiB of kernel in an isolated section
 section .multiboot
 align 4
     dd MAGIC
     dd MBFLAGS
     dd CHECKSUM
 
+; reserve a stack
 section .bss
 align 16
 stack_bottom:
 resb 16384 ; 16 KiB
 stack_top:
 
-; _start is the entry point to the kernel. jump here
-;       once kernel has been loaded
+; entry point to kernel. jump here once kernel is loaded
 section .text
 global _start:function (_start.end-_start)
 _start: ; protected mode
@@ -28,7 +27,8 @@ _start: ; protected mode
     ; TODO: initialize crucial processor state
     ;   - load GDT
     ;   - enable paging
-    ;   - setup global constructors
+    ;   - setup global constructors - OK
+    call    _init
     extern kernel_main
     call    kernel_main
     ; do other stuff
