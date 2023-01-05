@@ -29,8 +29,8 @@ _start: ; protected mode
     ;   - load GDT
     ;   - enable paging
     ;   - setup global constructors
-    extern kernel
-    call    kernel
+    extern kernel_main
+    call    kernel_main
     ; do other stuff
     cli         ; disable interrupts
 
