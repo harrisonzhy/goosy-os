@@ -28,13 +28,8 @@ namespace console {
         tcolor = color;
     }
 
-    void putentryat (char c, uint8_t color, size_t x, size_t y) {
-        auto i = y*VGA_WIDTH + x;
-        tbuffer[i] = vga_entry(c, color);
-    }
-
     void scroll () {
-        for (auto i = 0; i != VGA_WIDTH; ++i) {
+        for (auto i = 0; i != VGA_WIDTH-1; ++i) {
             for (auto j = 0; j != VGA_HEIGHT; ++j) {
                 tbuffer[i*VGA_WIDTH+j] = tbuffer[(i+1)*VGA_WIDTH+j];
             }
@@ -51,16 +46,18 @@ namespace console {
     }
 
     void putchar (char c) {
-        putentryat((unsigned char)c, tcolor, tcolumn, trow);
-        if (++tcolumn == VGA_WIDTH) {
+        if (c == '\n') {
+            newline();
+            return;
+        }
+        tbuffer[trow*VGA_WIDTH + tcolumn] = vga_entry((unsigned char)c, tcolor);
+        ++tcolumn;
+        if (tcolumn == VGA_WIDTH) {
             tcolumn = 0;
-            if (++trow == VGA_HEIGHT) {
-                for (auto i = 1; i != VGA_HEIGHT; ++i) {
-                    scroll();
-                }
-                newline();
-                trow = VGA_HEIGHT-1;
-            }
+        }
+        ++trow;
+        if (trow == VGA_HEIGHT) {
+            newline(); // already decrements trow and scrolls
         }
     }
 
