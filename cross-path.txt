@@ -6,6 +6,7 @@ $HOME/opt/cross/bin/$TARGET-gcc
 
 # to use compiler by invoking $TARGET-gcc, 
 # add $HOME/opt/cross/bin to $PATH
+export TARGET=i686-elf
 export PATH="$HOME/opt/cross/bin:$PATH"
 
 # or add permanently by adding PATH to the 

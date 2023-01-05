@@ -14,7 +14,7 @@ disk_load:
     jc disk_error       ; error if carry bit is set
 
     pop dx              ; original num sectors to read
-    cmp al, dh          ; set `al` to num sectors actually read
+    cmp al, dh          ; set `al` to `dl`, the num sectors actually read
     jne sector_error    ; error if al and d_ are not equal
     popa
     ret

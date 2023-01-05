@@ -1,43 +1,43 @@
-KERNEL_OFFSET equ 0x1000
+MBALIGN  equ  1<<0               ; aligns loaded modules on page boundaries
+MEMINFO  equ  1<<1               ; provides memory map
+MBFLAGS  equ  MBALIGN | MEMINFO  ; multiboot flag field
+MAGIC    equ  0X1BADB002         ; magic number
+CHECKSUM equ -(MAGIC+MBFLAGS)    ; prove multiboot status
 
-[bits 16] ; BIOS jumps to bootloader in real mode
-[org 0x7c00] ; bootloader offset
-    mov [BOOT_DRIVE], dl ; store boot drive
-    ; setup stack
-    xor ax, ax
-    mov es, ax
-    mov bp, 0x9000
-    mov sp, bp
+; constants are defined as in the multiboot standard
+; MAGIC is in the first 8 KiB of kernel, in an isolated section
 
-    call load_kernel ; load kernel from disk at 0x1000
-    call switch_prot 
+section .multiboot
+align 4
+    dd MAGIC
+    dd MBFLAGS
+    dd CHECKSUM
 
-    jmp $ ; doesn't get executed
+section .bss
+align 16
+stack_bottom:
+resb 16384 ; 16 KiB
+stack_top:
 
-%include "disk.s"
-%include "gdt.s"
-%include "switch_prot.s"
+; _start is the entry point to the kernel. jump here
+;       once kernel has been loaded
+section .text
+global _start:function (_start.end-_start)
+_start: ; protected mode
+    mov     esp, stack_top
+    ; TODO: initialize crucial processor state
+    ;   - load GDT
+    ;   - enable paging
+    ;   - setup global constructors
+    extern kernel
+    call    kernel
+    ; do other stuff
+    cli         ; disable interrupts
 
-; bx -> memory location to place read data
-; dh -> number of sectors to read
-; dl -> disk to read from
+    .hang:  
+        hlt
+        jmp     .hang   ; hang if nothing left to do
 
-[bits 16]
-load_kernel:
-    mov bx, KERNEL_OFFSET
-    mov dh, 2
-    mov dl, [BOOT_DRIVE]
-    call disk_load
-    ret
+    .end:
 
-[bits 32]
-BEGIN_PROT:
-    call KERNEL_OFFSET ; give control to kernel
-    jmp $ ; kernel should not return
-
-
-
-; bootloader
-BOOT_DRIVE db 0 ; disk
-times 510-($-$$) db 0 ; padding
-dw 0xaa55 ; magic number
+; assemble boot.s using `nasm -felf32 boot.s -o boot.o`
