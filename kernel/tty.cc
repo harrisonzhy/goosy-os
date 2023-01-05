@@ -1,4 +1,4 @@
-#include <../kernel/tty.hh>
+#include "tty.hh"
 
 namespace console {
     namespace {
@@ -55,9 +55,8 @@ namespace console {
         if (tcolumn == VGA_WIDTH) {
             tcolumn = 0;
         }
-        ++trow;
         if (trow == VGA_HEIGHT) {
-            newline(); // already decrements trow and scrolls
+            newline(); // already increments/decrements trow and scrolls
         }
     }
 

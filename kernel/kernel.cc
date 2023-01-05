@@ -1,6 +1,4 @@
-#pragma once
-#include "tty.hh"
-#include <../kernel/tty.cc>
+#include "kernel.hh"
 
 extern "C" void kernel_main () {
     console::init();
