@@ -24,6 +24,6 @@ static inline auto vga_entry_color (enum vga_color fg, enum vga_color bg) -> u8 
 	return fg | bg << 4;
 }
 
-static inline auto vga_entry(u8 c, u8 color) -> u16 {
+static inline auto vga_entry(unsigned char c, u8 color) -> u16 {
 	return (u16)c | (u16)color << 8;
 }

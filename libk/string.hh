@@ -54,7 +54,7 @@ auto memset(void *b, int c, usize len) -> void* {
     return b;
 }
 
-auto strlen(const i8* str) -> usize {
+auto strlen(const char* str) -> usize {
     usize len = 0;
     while (str[len]) {
         ++len;

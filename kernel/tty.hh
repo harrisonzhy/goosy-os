@@ -5,7 +5,7 @@
 
 namespace console {
     void init ();
-    void putchar (i8 c);
-    void write (const i8* str, usize size);
-    void writestring (const i8* str);
+    void putchar (char c);
+    void write (const char* str, usize size);
+    void writestring (const char* str);
 }

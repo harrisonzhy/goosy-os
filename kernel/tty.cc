@@ -45,12 +45,12 @@ namespace console {
         }
     }
 
-    void putchar (i8 c) {
+    void putchar (char c) {
         if (c == '\n') {
             newline();
             return;
         }
-        tbuffer[trow*VGA_WIDTH + tcolumn] = vga_entry((u8)c, tcolor);
+        tbuffer[trow*VGA_WIDTH + tcolumn] = vga_entry((unsigned char)c, tcolor);
         ++tcolumn;
         if (tcolumn == VGA_WIDTH) {
             tcolumn = 0;
@@ -60,13 +60,13 @@ namespace console {
         }
     }
 
-    void write (const i8* data, usize size) {
+    void write (const char* data, usize size) {
         for (auto i = 0; i != size; ++i) {
             putchar(data[i]);
         }
     }
 
-    void writestring (const i8* str) {
+    void writestring (const char* str) {
         write(str, strlen(str));
     }
 }
