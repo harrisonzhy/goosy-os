@@ -2,9 +2,9 @@
 
 namespace console {
     namespace {
-        const usize VGA_WIDTH = 80;
+        const usize VGA_WIDTH  = 80;
         const usize VGA_HEIGHT = 25;
-        const u16 VGA_MEMORY = 0xB8000;
+        const u16 VGA_MEMORY   = 0xB8000;
         usize    trow;
         usize    tcolumn;
         u8       tcolor;

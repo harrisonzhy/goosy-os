@@ -1,7 +1,7 @@
 #pragma once
-#include <../kernel/vga.hh>
-#include <../libk/int.hh>
-#include <../libk/string.hh>
+#include "vga.hh"
+#include "int.hh"
+#include "string.hh"
 
 namespace console {
     void init ();

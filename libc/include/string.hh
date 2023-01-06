@@ -1,6 +1,8 @@
 #pragma once
 #include "int.hh"
 
+// may need to revise u8 to char
+
 auto memcmp(const void* s1, const void* s2, usize n) -> int {
     // assumes both strings are size `n`
     auto f = (u8*)s1;
