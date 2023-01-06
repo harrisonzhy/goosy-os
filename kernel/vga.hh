@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include "../libk/int.hh"
 
 enum vga_color {
     VGA_COLOR_BLACK         = 0,
@@ -20,10 +20,10 @@ enum vga_color {
 	VGA_COLOR_WHITE         = 15,
 };
 
-static inline auto vga_entry_color (enum vga_color fg, enum vga_color bg) -> uint8_t {
+static inline auto vga_entry_color (enum vga_color fg, enum vga_color bg) -> u8 {
 	return fg | bg << 4;
 }
 
-static inline auto vga_entry(unsigned char c, uint8_t color) -> uint16_t {
-	return (uint16_t) c | (uint16_t) color << 8;
+static inline auto vga_entry(u8 c, u8 color) -> u16 {
+	return (u16)c | (u16)color << 8;
 }

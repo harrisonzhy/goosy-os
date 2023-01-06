@@ -2,20 +2,20 @@
 
 namespace console {
     namespace {
-        const size_t VGA_WIDTH = 80;
-        const size_t VGA_HEIGHT = 25;
-        const uint16_t VGA_MEMORY = 0xB8000;
-        size_t    trow;
-        size_t    tcolumn;
-        uint8_t   tcolor;
-        uint16_t* tbuffer;
+        const usize VGA_WIDTH = 80;
+        const usize VGA_HEIGHT = 25;
+        const u16 VGA_MEMORY = 0xB8000;
+        usize    trow;
+        usize    tcolumn;
+        u8       tcolor;
+        u16*     tbuffer;
     }
 
     void init () {
         trow = 0;
         tcolumn = 0;
         tcolor = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-        tbuffer = (uint16_t*)VGA_MEMORY;
+        tbuffer = (u16*)VGA_MEMORY;
         for (auto i = 0; i != VGA_HEIGHT; ++i) {
             for (auto j = 0; j != VGA_WIDTH; ++j) {
                 auto n = i*VGA_WIDTH + j;
@@ -24,7 +24,7 @@ namespace console {
         }
     }
 
-    void setcolor (uint8_t color) {
+    void setcolor (u8 color) {
         tcolor = color;
     }
 
@@ -45,12 +45,12 @@ namespace console {
         }
     }
 
-    void putchar (int8_t c) {
+    void putchar (i8 c) {
         if (c == '\n') {
             newline();
             return;
         }
-        tbuffer[trow*VGA_WIDTH + tcolumn] = vga_entry((uint8_t)c, tcolor);
+        tbuffer[trow*VGA_WIDTH + tcolumn] = vga_entry((u8)c, tcolor);
         ++tcolumn;
         if (tcolumn == VGA_WIDTH) {
             tcolumn = 0;
@@ -60,13 +60,13 @@ namespace console {
         }
     }
 
-    void write (const int8_t* data, size_t size) {
+    void write (const i8* data, usize size) {
         for (auto i = 0; i != size; ++i) {
             putchar(data[i]);
         }
     }
 
-    void writestring (const int8_t* str) {
+    void writestring (const i8* str) {
         write(str, strlen(str));
     }
 }

@@ -27,11 +27,11 @@ _start: ; protected mode
     ; TODO: initialize crucial processor state
     ;   - load GDT
     ;   - enable paging
-    ;   - setup global constructors - OK
+    
+    ; setup global constructors
     call    _init
-    extern kernel_main
+    extern  kernel_main
     call    kernel_main
-    ; do other stuff
     cli         ; disable interrupts
 
     .hang:  
