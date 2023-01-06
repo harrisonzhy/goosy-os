@@ -2,7 +2,7 @@ ENTRY(_start)
 
 SECTIONS {
     /* load kernel sections starting at 1 MiB */
-    .= 1M;
+    . = 1M;
 
     /* load multiboot header */
     .text BLOCK(4K) : ALIGN(4K) {
@@ -16,7 +16,7 @@ SECTIONS {
     }
 
     /* load initialized read-write data */
-    .data block(4K) : ALIGN(4K) {
+    .data BLOCK(4K) : ALIGN(4K) {
         *(.data)
     }
 

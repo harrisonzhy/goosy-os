@@ -29,7 +29,7 @@ _start: ; protected mode
     ;   - enable paging
     
     ; setup global constructors
-    call    _init
+    ; call    _init
     extern  kernel_main
     call    kernel_main
     cli         ; disable interrupts

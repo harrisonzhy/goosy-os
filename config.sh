@@ -8,6 +8,7 @@ export AR=${HOST}-ar
 export AS=${HOST}-as
 export CC=${HOST}-gcc
 
+# TODO: change folders
 export PREFIX=/usr
 export EXEC_PREFIX=$PREFIX
 export LIBDIR=$EXEC_PREFIX/lib

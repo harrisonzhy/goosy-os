@@ -1,5 +1,9 @@
 #include "tty.hh"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 namespace console {
     namespace {
         const usize VGA_WIDTH  = 80;
@@ -70,3 +74,7 @@ namespace console {
         write(str, strlen(str));
     }
 }
+
+#ifdef __cplusplus
+}
+#endif

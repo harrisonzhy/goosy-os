@@ -20,6 +20,10 @@ enum vga_color {
 	VGA_COLOR_WHITE         = 15,
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static inline auto vga_entry_color (enum vga_color fg, enum vga_color bg) -> u8 {
 	return fg | bg << 4;
 }
@@ -27,3 +31,7 @@ static inline auto vga_entry_color (enum vga_color fg, enum vga_color bg) -> u8 
 static inline auto vga_entry(unsigned char c, u8 color) -> u16 {
 	return (u16)c | (u16)color << 8;
 }
+
+#ifdef __cplusplus
+}
+#endif
