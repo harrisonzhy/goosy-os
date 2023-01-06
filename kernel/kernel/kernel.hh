@@ -1,2 +1,2 @@
 #pragma once
-#include "tty.cc"
+#include "../arch/i686/tty.hh"
