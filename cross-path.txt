@@ -11,3 +11,10 @@ export PATH="$HOME/opt/cross/bin:$PATH"
 
 # or add permanently by adding PATH to the 
 # ~/.profile configuration shell script
+
+
+# test compilation:
+$TARGET-g++ -c ./kernel/kernel.cc -o ./kernel/kernel.o -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti          
+
+# test linking:
+$TARGET-gcc -T ./arch/i686/linker.ld -o goosyos.bin -ffreestanding -O2 -nostdlib ./arch/i686/boot.o ./kernel/kernel.o -lgcc
