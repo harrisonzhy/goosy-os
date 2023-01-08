@@ -1,28 +1,45 @@
-ENTRY(_start)
+ENTRY (_start)
 
 SECTIONS {
-    /* load kernel sections starting at 1 MiB */
     . = 1M;
 
-    /* load multiboot header */
-    .text BLOCK(4K) : ALIGN(4K) {
+    .text ALIGN(0x1000) : {
         *(.multiboot)
         *(.text)
+        *(.gnu.linkonce.t*)
     }
 
-    /* load read-only data */
-    .rodata BLOCK(4K) : ALIGN(4K) {
-        *(.rodata)
+    .rodata ALIGN(0x1000) : {
+        start_ctors = .;
+        *(SORT(.ctors*))
+        end_ctors = .;
+
+        start_dtors = .;
+        *(SORT(.dtors*))
+        end_dtors = .;
+
+        *(.rodata*)
+        *(.gnu.linkonce.r*)
     }
 
-    /* load initialized read-write data */
-    .data BLOCK(4K) : ALIGN(4K) {
+    .data ALIGN(0x1000) : {
         *(.data)
+        *(.gnu.linkonce.d*)
     }
 
-    /* load uninitialized read-write data, stack */
-    .bss BLOCK(4K) : ALIGN(4K) {
+    .bss : {
+        sbss = .;
         *(COMMON)
-        *(.bss)
+        *(.BSS)
+        *(.gnu.linkonce.b*)
+        ebss = .;
+    }
+
+    .init : {
+        *(.init)
+    }
+
+    .fini : {
+        *(.fini)
     }
 }

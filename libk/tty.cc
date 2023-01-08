@@ -1,4 +1,5 @@
 #include "tty.hh"
+#include "../libc/string.hh"
 
 #ifdef __cplusplus
 extern "C" {

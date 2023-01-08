@@ -1,0 +1,5 @@
+export TARGET=i686-elf
+export PATH="$HOME/opt/cross/bin:$PATH"
+
+../grub/configure --disable-werror TARGET_CC=$TARGET-gcc TARGET_OBJCOPY=$TARGET-objcopy \
+TARGET_STRIP=$TARGET-strip TARGET_NM=$TARGET-nm TARGET_RANLIB=$TARGET-ranlib --target=$TARGET

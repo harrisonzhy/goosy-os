@@ -6,14 +6,14 @@ CHECKSUM equ -(MAGIC+MBFLAGS)    ; prove multiboot status
 
 ; declare header as in the multiboot standard
 ; MAGIC is in the first 8 KiB of kernel in an isolated section
-section .multiboot
+SECTION .multiboot
 align 4
     dd MAGIC
     dd MBFLAGS
     dd CHECKSUM
 
 ; reserve a stack
-section .bss
+SECTION .bss
 align 16
 stack_bottom:
 resb 16384 ; 16 KiB
@@ -30,7 +30,7 @@ _start: ; protected mode
     
     ; setup global constructors
     call    _init
-    extern  kernel_main
+    [extern  kernel_main]
     call    kernel_main
     cli         ; disable interrupts
 

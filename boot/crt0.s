@@ -1,8 +1,8 @@
-[bits 32]
 [extern _init]
 [extern _fini]
 [extern kernel_main]
 
+[bits 32]
 global _start
 _start:
     call    _init

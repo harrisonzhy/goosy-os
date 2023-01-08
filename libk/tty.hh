@@ -1,6 +1,6 @@
 #pragma once
 #include "../libc/int.hh"
-#include "../libc/string.hh"
+// #include "../libc/string.hh"
 #include "vga.hh"
 
 #ifdef __cplusplus

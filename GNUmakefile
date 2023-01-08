@@ -10,10 +10,10 @@ HEADERS = $(wildcard kernel/*.hh libk/*.hh)
 OBJ = ${CPPSOURCES:.cc=.o}
 
 CC = i686-elf-g++
-CFLAGS = -g -std=c++17 -ffreestanding -nostdlib -lgcc -Wall -O2 -fno-threadsafe-statics
+CFLAGS = -g -std=c++17 -ffreestanding -nostdlib -nostartfiles -lgcc -Wall -O2 -fno-threadsafe-statics
 GDB = gdb
 
-CRTI = boot/crti.o
+CRTI_OBJ = boot/crti.o
 CRTN_OBJ = boot/crtn.o
 CRT0_OBJ = boot/crt0.o
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
@@ -44,7 +44,7 @@ run-console: goosyos.bin
 	qemu-system-i386 -hda $< -display curses
 
 gdb: goosyos.bin kernel.elf
-	qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown & \
+	qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown &
 	${GDB}
 
 %.o: %.cc ${HEADERS}
