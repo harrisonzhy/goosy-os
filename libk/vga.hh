@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../libc/include/int.hh"
+#include "../libc/int.hh"
 
 enum vga_color {
     VGA_COLOR_BLACK         = 0,
