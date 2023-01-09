@@ -22,7 +22,7 @@ KERNEL_OFFSET equ 0x1000
 [bits 16]
 load_kernel:
     mov     bx, KERNEL_OFFSET
-    mov     al, 64
+    mov     al, 2 ; change as kernel grows in size
     call    disk_load
     ret
 
