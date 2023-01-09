@@ -3,6 +3,7 @@
 [extern kernel_main]
 
 [bits 32]
+
 global _start
 _start:
     call    _init

@@ -1,6 +1,3 @@
-export TARGET=i686-elf
-# export PATH="$HOME/opt/cross/bin:$PATH"
-
 # $@ = target file
 # $< = first dependency
 # $^ = all dependencies
@@ -10,7 +7,7 @@ HEADERS = $(wildcard kernel/*.hh libk/*.hh)
 OBJ = ${CPPSOURCES:.cc=.o}
 
 CC = i686-elf-g++
-CFLAGS = -g -std=c++17 -ffreestanding -nostdlib -nostartfiles -lgcc -Wall -O2 -fno-threadsafe-statics
+CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -Wall -O2 -flto -fno-exceptions -fno-rtti
 GDB = gdb
 
 CRTI_OBJ = boot/crti.o
@@ -22,17 +19,17 @@ OBJ_LINKS:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(CRTN_
 
 all: run
 
-goosyos.bin: kernel.bin
+goosyos.bin: boot/boot.bin kernel.bin
 	cat $^ > $@
 
 kernel.bin: ${OBJ_LINKS}
-	i686-elf-ld -use-linker-plugin -o $@ --script=linker.ld $^ --oformat binary
+	i686-elf-ld -flto -use-linker-plugin -o $@ --script=linker.ld $^ --oformat binary
 
 kernel.elf: ${OBJ_LINKS}
-	i686-elf-ld -use-linker-plugin -o $@ --script=linker.ld $^
+	i686-elf-ld -flto -use-linker-plugin -o $@ --script=linker.ld $^
 
 dump: kernel.elf
-	objdump -d kernel.elf > kerneldump.txt
+	objdump -d kernel.elf
 
 run: goosyos.bin
 	qemu-system-i386 -hda $<
@@ -59,3 +56,8 @@ gdb: goosyos.bin kernel.elf
 clean:
 	rm -rf *.bin *.dis *.o goosyos.bin *.elf
 	rm -rf *.o boot/*.bin boot/*.o klib/*.o klib/*/*.o kernel/*.o obj/*
+
+summary:
+	find . -name '*.s' | xargs wc -l &&
+	find . -name '*.cc'  | xargs wc -l &&
+	find . -name '*.hh'  | xargs wc -l
