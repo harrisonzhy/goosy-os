@@ -1,44 +1,62 @@
-MBALIGN  equ  1<<0               ; aligns loaded modules on page boundaries
-MEMINFO  equ  1<<1               ; provides memory map
-MBFLAGS  equ  MBALIGN | MEMINFO  ; multiboot flag field
-MAGIC    equ  0x1BADB002         ; magic number
-CHECKSUM equ -(MAGIC+MBFLAGS)    ; prove multiboot status
+KERNEL_OFFSET equ 0x1000
 
-; declare header as in the multiboot standard
-; MAGIC is in the first 8 KiB of kernel in an isolated section
-section .multiboot
-align 4
-    dd MAGIC
-    dd MBFLAGS
-    dd CHECKSUM
+[bits 16] ; BIOS jumps to bootloader in real mode
+[org 0x7c00]
+    mov     [BOOT_DRIVE], dl
+    xor     ax, ax
+    mov     es, ax
+    mov     bp, 0x9000 ; setup stack
+    mov     sp, bp
+    call    load_kernel ; load kernel from disk at 0x1000
+    call    switch_protmode
+    jmp     $ ; never gets here
 
-; reserve a stack
-section .bss
-align 16
-    stack_bottom:
-    resb 0x4000 ; 16 KiB
-    stack_top:
+%include "boot/disk.s"
+%include "boot/gdt.s"
+%include "boot/vga.s"
 
-; entry point to kernel. jump here once kernel is loaded
-section .text
-global start:function (_start.end-_start)
-_start:
-    mov     esp, stack_top
-    
-    ; TODO: initialize crucial processor state
-    ;   - load GDT
-    ;   - enable paging
-    
-    ; setup global constructors
-    call    _init
-    extern  kernel_main
-    call    kernel_main
-    cli         ; disable interrupts
+; bx: memory location to place read data
+; dh: number of sectors to read
+; dl: disk to read from
 
-.hang:  
-    hlt
-    jmp     .hang   ; hang if nothing left to do
+[bits 16]
+load_kernel:
+    mov     bx, KERNEL_OFFSET
+    mov     al, 64
+    call    disk_load
+    ret
 
-.end:
+[bits 16]
+switch_protmode:
+    cli
+    lgdt    [gdt_descriptor] ; load gdt descriptor
+    mov     eax, cr0
+    or      eax, 0x1 ; protected mode
+    mov     cr0, eax
+    jmp     CODE_SEG:init_protmode
 
-; assemble boot.s using `nasm -felf32 boot.s -o boot.o`
+[bits 32]
+init_pm:
+    mov     ax, DATA_SEG ; update segment regs
+    mov     ds, ax
+    mov     ss, ax
+    mov     es, ax
+    mov     fs, ax
+    mov     gs, ax
+
+    mov     ebp, 0x90000 ; put base pointer on stack top
+    mov     esp, ebp
+
+    call    BEGIN_PROTMODE
+
+[bits 32]
+BEGIN_PROTMODE:    
+    call    KERNEL_OFFSET
+    jmp     $
+
+
+BOOT_DRIVE db 0
+
+; signature
+times 510-($-$$) db 0
+dw 0xaa55

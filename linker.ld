@@ -7,6 +7,7 @@ SECTIONS {
 
     .data BLOCK(4K) : ALIGN(4K) {
         *(.data)
+        *(.gnu.linkonce.r*)
     }
 
     .rodata BLOCK(4K) : ALIGN(4K) {
@@ -19,6 +20,7 @@ SECTIONS {
         end_dtors = .;
 
         *(.rodata)
+        *(.gnu.linkonce.r*)
     }
 
     .bss BLOCK(4K) : ALIGN(4K) {
