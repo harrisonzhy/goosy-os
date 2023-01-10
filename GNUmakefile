@@ -7,7 +7,7 @@ HEADERS = $(wildcard kernel/*.hh libk/*.hh)
 OBJ = ${CPP_SOURCES:.cc=.o}
 
 CC = i686-elf-g++
-CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -lsupc++ -Wall -O2 -flto -ffat-lto-objects -fno-threadsafe-statics -fno-stack-protector -fno-exceptions
+CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -Wall -O2 -flto -ffat-lto-objects -fno-threadsafe-statics -fno-stack-protector -fno-exceptions
 GDB = gdb
 
 CRTI_OBJ = boot/crti.o
@@ -47,7 +47,7 @@ gdb: goosyos.bin kernel.elf
 %.o: %.cc ${HEADERS}
 	${CC} ${CFLAGS} -c $< -o $@
 
-%.o: %.s
+%.o: %.asm
 	nasm $< -f elf -o $@
 
 %.bin: %.asm
