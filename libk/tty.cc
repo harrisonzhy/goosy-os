@@ -9,18 +9,18 @@ namespace console {
     namespace {
         const usize VGA_WIDTH  = 80;
         const usize VGA_HEIGHT = 25;
-        const u16 VGA_MEMORY   = 0xB8000;
+        const u32 VGA_MEMORY   = 0xB8000;
         usize    trow;
         usize    tcolumn;
         u8       tcolor;
-        u16*     tbuffer;
+        u32*     tbuffer;
     }
 
     void init () {
         trow = 0;
         tcolumn = 0;
         tcolor = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-        tbuffer = (u16*)VGA_MEMORY;
+        tbuffer = (u32*)VGA_MEMORY;
         for (auto i = 0; i != VGA_HEIGHT; ++i) {
             for (auto j = 0; j != VGA_WIDTH; ++j) {
                 auto n = i*VGA_WIDTH + j;
@@ -55,18 +55,18 @@ namespace console {
             newline();
             return;
         }
-        tbuffer[trow*VGA_WIDTH + tcolumn] = vga_entry((unsigned char)c, tcolor);
+        tbuffer[trow*VGA_WIDTH+tcolumn] = vga_entry((unsigned char)c, tcolor);
         ++tcolumn;
         if (tcolumn == VGA_WIDTH) {
             tcolumn = 0;
         }
         if (trow == VGA_HEIGHT) {
-            newline(); // already increments/decrements trow and scrolls
+            newline(); // already changes `trow` and scrolls
         }
     }
 
-    void write (const char* data, usize size) {
-        for (auto i = 0; i != size; ++i) {
+    void write (const char* data, usize len) {
+        for (auto i = 0; i != (int)len; ++i) {
             putchar(data[i]);
         }
     }

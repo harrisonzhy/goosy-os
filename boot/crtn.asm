@@ -1,9 +1,9 @@
 SECTION .init
-    ; GCC will put crtend.o's .fini section content here
-    pop ebp
+    ; gcc places crtend.o's .init section content here
+    pop     ebp
     ret
 
 SECTION .fini
-    ; GCC will put crtend.o's .fini section content here
-    pop ebp
+    ; gcc places crtend.o's .fini section content here
+    pop     ebp
     ret

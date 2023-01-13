@@ -19,7 +19,7 @@ OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(C
 
 all: run
 
-goosyos.bin: kernel.bin
+goosyos.bin: boot/boot.bin kernel.bin
 	cat $^ > $@
 
 kernel.bin: ${OBJ_LINK_LIST}
@@ -41,7 +41,7 @@ run-console: goosyos.bin
 	qemu-system-i386 -hda $< -display curses
 
 gdb: goosyos.bin kernel.elf
-	qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown & \
+	qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown &
 	${GDB}
 
 %.o: %.cc ${HEADERS}
@@ -55,7 +55,7 @@ gdb: goosyos.bin kernel.elf
 
 clean:
 	rm -rf *.bin *.dis *.o goosyos.bin *.elf
-	rm -rf *.o boot/*.bin boot/*.o klib/*.o klib/*/*.o kernel/*.o obj/*
+	rm -rf *.o boot/*.bin boot/*.o libk/*.o libk/*/*.o kernel/*.o obj/*
 
 summary:
 	find . -name '*.asm' | xargs wc -l &&

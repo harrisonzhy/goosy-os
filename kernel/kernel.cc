@@ -2,5 +2,5 @@
 
 extern "C" void kernel_main () {
     console::init();
-    console::writestring("Hello world!");
+    console::writestring("Hello world :)\n");
 }

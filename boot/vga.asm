@@ -1,26 +1,21 @@
-[bits 32] ; using 32-bit protected mode
+VGA_SEGMENT equ 0xB8000
 
-; this is how constants are defined
-VIDEO_MEMORY equ 0xb8000
-WHITE_ON_BLACK equ 0x0f ; the color byte for each character
-
-print_vga:
+[bits 32]
+vga_print:
     pusha
-    mov edx, VIDEO_MEMORY
+    mov     edx, VGA_SEGMENT
 
-print_string_vga_loop:
-    mov al, [ebx] ; [ebx] is the address of our character
-    mov ah, WHITE_ON_BLACK
+vga_printstring:
+    mov     al, [ebx]
+    mov     ah, 0xF
+    cmp     al, 0 ; print until end of string
+    je      vga_printstring_done
 
-    cmp al, 0 ; check if end of string
-    je print_string_vga_done
+    mov     [edx], ax ; if not done, continue and loop
+    add     ebx, 1 ; increment char pos
+    add     edx, 2
+    jmp     vga_printstring
 
-    mov [edx], ax ; store character + attribute in video memory
-    add ebx, 1 ; next char
-    add edx, 2 ; next video memory position
-
-    jmp print_string_vga_loop
-
-print_string_vga_done:
+vga_printstring_done:
     popa
     ret
