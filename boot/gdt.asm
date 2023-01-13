@@ -5,7 +5,7 @@ gdt_start:
 
 ; code segment descriptor
 gdt_code: 
-    dw 0xffff    ; segment length, bits 0-15
+    dw 0xFFFF    ; segment length, bits 0-15
     dw 0x0       ; segment base, bits 0-15
     db 0x0       ; segment base, bits 16-23
     db 10011010b ; flags (8 bits)
@@ -15,7 +15,7 @@ gdt_code:
 ; data segment descriptor
 ;   same as code segment descriptor but removed write perms
 gdt_data:
-    dw 0xffff
+    dw 0xFFFF
     dw 0x0
     db 0x0
     db 10010010b ; changed write flag

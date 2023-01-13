@@ -9,21 +9,20 @@ namespace console {
     namespace {
         const usize VGA_WIDTH  = 80;
         const usize VGA_HEIGHT = 25;
-        const u32 VGA_MEMORY   = 0xB8000;
         usize    trow;
         usize    tcolumn;
         u8       tcolor;
-        u32*     tbuffer;
+        u16*     tbuffer;
     }
 
     void init () {
         trow = 0;
         tcolumn = 0;
         tcolor = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-        tbuffer = (u32*)VGA_MEMORY;
+        tbuffer = (u16*)0xB8000;
         for (auto i = 0; i != VGA_HEIGHT; ++i) {
             for (auto j = 0; j != VGA_WIDTH; ++j) {
-                auto n = i*VGA_WIDTH + j;
+                auto n = i*VGA_WIDTH+j;
                 tbuffer[n] = vga_entry(' ', tcolor);
             }
         }
@@ -34,10 +33,15 @@ namespace console {
     }
 
     void scroll () {
-        for (auto i = 0; i != VGA_WIDTH-1; ++i) {
-            for (auto j = 0; j != VGA_HEIGHT; ++j) {
+        for (auto i = 0; i != VGA_HEIGHT-1; ++i) {
+            for (auto j = 0; j != VGA_WIDTH; ++j) {
                 tbuffer[i*VGA_WIDTH+j] = tbuffer[(i+1)*VGA_WIDTH+j];
             }
+        }
+        for (auto k = 0; k != VGA_HEIGHT; ++k) {
+            tcolor = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+            auto n = (VGA_HEIGHT-1)*VGA_WIDTH; 
+            tbuffer[n] = vga_entry(' ', tcolor);
         }
     }
 
