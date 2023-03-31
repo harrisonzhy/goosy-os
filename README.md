@@ -1,3 +1,3 @@
 # GoosyOS
 
-Experimental operating system built from scratch.
+Experimental operating system built entirely from scratch.
