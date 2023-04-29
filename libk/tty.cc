@@ -19,10 +19,10 @@ namespace console {
         trow = 0;
         tcolumn = 0;
         tcolor = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-        tbuffer = (u16*)0xB8000;
-        for (auto i = 0; i != VGA_HEIGHT; ++i) {
-            for (auto j = 0; j != VGA_WIDTH; ++j) {
-                auto n = i*VGA_WIDTH+j;
+        tbuffer = (u16*) 0xB8000;
+        for (auto i = 0; i < VGA_HEIGHT; ++i) {
+            for (auto j = 0; j < VGA_WIDTH; ++j) {
+                auto n = i * VGA_WIDTH + j;
                 tbuffer[n] = vga_entry(' ', tcolor);
             }
         }
@@ -33,14 +33,14 @@ namespace console {
     }
 
     void scroll () {
-        for (auto i = 0; i != VGA_HEIGHT-1; ++i) {
-            for (auto j = 0; j != VGA_WIDTH; ++j) {
-                tbuffer[i*VGA_WIDTH+j] = tbuffer[(i+1)*VGA_WIDTH+j];
+        for (auto i = 0; i < VGA_HEIGHT - 1; ++i) {
+            for (auto j = 0; j < VGA_WIDTH; ++j) {
+                tbuffer[i * VGA_WIDTH + j] = tbuffer[(i + 1) * VGA_WIDTH + j];
             }
         }
-        for (auto k = 0; k != VGA_HEIGHT; ++k) {
+        for (auto i = 0; i < VGA_HEIGHT; ++i) {
             tcolor = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-            auto n = (VGA_HEIGHT-1)*VGA_WIDTH; 
+            auto n = (VGA_HEIGHT - 1) * VGA_WIDTH; 
             tbuffer[n] = vga_entry(' ', tcolor);
         }
     }
@@ -59,7 +59,7 @@ namespace console {
             newline();
             return;
         }
-        tbuffer[trow*VGA_WIDTH+tcolumn] = vga_entry((unsigned char)c, tcolor);
+        tbuffer[trow * VGA_WIDTH + tcolumn] = vga_entry((unsigned char)c, tcolor);
         ++tcolumn;
         if (tcolumn == VGA_WIDTH) {
             tcolumn = 0;
@@ -70,7 +70,7 @@ namespace console {
     }
 
     void write (const char* data, usize len) {
-        for (auto i = 0; i != (int)len; ++i) {
+        for (auto i = 0; i < (int)len; ++i) {
             putchar(data[i]);
         }
     }
