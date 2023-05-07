@@ -1,5 +1,5 @@
 #pragma once
-#include "../libc/int.hh"
+#include "int.hh"
 
 namespace ports {
     void outb(u16 port, u8 val);

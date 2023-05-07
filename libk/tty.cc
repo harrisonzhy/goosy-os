@@ -1,16 +1,6 @@
 #include "tty.hh"
-#include "ports.hh"
 
 namespace console {
-    namespace {
-        const isize VGA_WIDTH  = 80;
-        const isize VGA_HEIGHT = 25;
-        u8   trow;
-        u8   tcolumn;
-        u8   tcolor;
-        u16* console_page;
-    }
-
     namespace {
         const u16 CURSOR_START   = 0xA;
         const u16 CURSOR_END     = 0xB;
@@ -18,22 +8,22 @@ namespace console {
         const u16 CURSOR_CONTROL = 0x3D5;
         const u16 CURSOR_OFFSET  = 0x3D4;
     }
-    
-    void Console::update_cursor(u16 trow, u16 tcolumn) {
+
+    namespace {
+        static const isize VGA_WIDTH  = 80;
+        static const isize VGA_HEIGHT = 25;
+        static u8   trow;
+        static u8   tcolumn;
+        static u8   tcolor;
+        static u16* console_page;
+    }
+
+    inline __attribute__((always_inline)) void Console::update_cursor(u16 trow, u16 tcolumn) {
         const u16 pos = trow * VGA_WIDTH + tcolumn;
         ports::outb(0x3D4, 0x0F);
         ports::outb(0x3D5, (const u8)(pos & 0xFF));
         ports::outb(0x3D4, 0x0E);
         ports::outb(0x3D5, (const u8)((pos >> 8) & 0xFF));
-    }
-
-    auto get_cursor_position() -> u16 {
-        u16 pos = 0;
-        ports::outb(0x3D4, 0x0F);
-        pos |= ports::inb(0x3D5);
-        ports::outb(0x3D4, 0x0E);
-        pos |= ((u16) ports::inb(0x3D5)) << 8;
-        return pos;
     }
 
     void Console::init() {
@@ -52,12 +42,12 @@ namespace console {
         ports::outb(CURSOR_OFFSET, CURSOR_START);
         // upper two bits are reserved
         auto existing = ports::inb(CURSOR_CONTROL) & 0xC;
-        // enable cursor by setting bit 5 to 0 and set start position to 0
+        // enable cursor by setting bit 5 to 0, and set start position to 0
         ports::outb(CURSOR_CONTROL, existing);
         ports::outb(CURSOR_OFFSET, CURSOR_END);
         // upper three bits are reserved for cursor end
         existing = ports::inb(CURSOR_CONTROL) & 0xE;
-        // set end position to 0xF
+        // set end position to 0xF (block)
         ports::outb(CURSOR_CONTROL, existing);
     }
 
