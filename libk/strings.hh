@@ -12,19 +12,19 @@ struct str {
             return tsize;
         }
 
-        auto constexpr begin() const -> iterator<char const> {
+        auto constexpr begin() const -> iterator<const char> {
             return iterator<const char>(tstr);
         }
 
-        auto constexpr end() const -> iterator<char const> {
+        auto constexpr end() const -> iterator<const char> {
             return iterator<const char>(tstr + tsize);
         }
 
-        auto constexpr operator[](const usize i) const -> char const& {
+        auto constexpr operator[](const usize i) const -> const char& {
             return tstr[i];
         }
 
     private:
-        char const* tstr;
+        const char* tstr;
         usize tsize;
 };

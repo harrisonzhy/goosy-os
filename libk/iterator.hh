@@ -23,11 +23,11 @@ struct iterator {
             return t;
         }
 
-        auto constexpr friend operator == (iterator const& u, iterator const& v) -> bool {
+        auto constexpr friend operator == (const iterator& u, const iterator& v) -> bool {
             return u.ptr == v.ptr;
         };
 
-        auto constexpr friend operator != (iterator const& u, iterator const& v) -> bool {
+        auto constexpr friend operator != (const iterator& u, const iterator& v) -> bool {
             return u.ptr != v.ptr;
         };
 
