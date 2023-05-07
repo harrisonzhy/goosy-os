@@ -2,7 +2,7 @@
 
 using namespace console;
 
-extern "C" void kernel_main () {
+extern "C" void kernel_main() {
     Console::init();
-    Console::write("Hello world :)\n");
+    Console::write("Hello world :)");
 }
