@@ -26,10 +26,10 @@ gdt_end:
 
 ; gdt descriptor
 gdt_descriptor:
-    dw gdt_end-gdt_start-1 ; size (16 bit)
+    dw gdt_end-gdt_start - 1 ; size (16 bit)
     dd gdt_start ; address (32 bit)
 
 
 ; boot.s constants
-CODE_SEG equ gdt_code-gdt_start
-DATA_SEG equ gdt_data-gdt_start
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start

@@ -61,5 +61,5 @@ BOOT_DRIVE db 0
 PROTMODE_MSG db "Entered protected mode (32 bit)", 0
 
 ; signature
-times 510-($-$$) db 0
+times 510 - ($ - $$) db 0
 dw 0xAA55
