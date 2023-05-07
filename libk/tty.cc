@@ -7,15 +7,15 @@ extern "C" {
 
 namespace console {
     namespace {
-        const usize VGA_WIDTH  = 80;
-        const usize VGA_HEIGHT = 25;
-        usize    trow;
-        usize    tcolumn;
+        const isize VGA_WIDTH  = 80;
+        const isize VGA_HEIGHT = 25;
+        isize    trow;
+        isize    tcolumn;
         u8       tcolor;
         u16*     tbuffer;
     }
 
-    void init () {
+    void Console::init () {
         trow = 0;
         tcolumn = 0;
         tcolor = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
@@ -28,11 +28,11 @@ namespace console {
         }
     }
 
-    void setcolor (u8 color) {
+    void Console::setcolor (u8 color) {
         tcolor = color;
     }
 
-    void scroll () {
+    void Console::scroll () {
         for (auto i = 0; i < VGA_HEIGHT - 1; ++i) {
             for (auto j = 0; j < VGA_WIDTH; ++j) {
                 tbuffer[i * VGA_WIDTH + j] = tbuffer[(i + 1) * VGA_WIDTH + j];
@@ -45,18 +45,18 @@ namespace console {
         }
     }
 
-    void newline () {
+    void Console::newline () {
         tcolumn = 0;
         ++trow;
         if (trow == VGA_HEIGHT) {
             --trow;
-            scroll();
+            Console::scroll();
         }
     }
 
-    void putchar (char c) {
+    void Console::putchar (const char c) {
         if (c == '\n') {
-            newline();
+            Console::newline();
             return;
         }
         tbuffer[trow * VGA_WIDTH + tcolumn] = vga_entry((unsigned char)c, tcolor);
@@ -65,18 +65,16 @@ namespace console {
             tcolumn = 0;
         }
         if (trow == VGA_HEIGHT) {
-            newline(); // already changes `trow` and scrolls
+            Console::newline(); // `newline()' changes `trow' and scrolls
         }
     }
 
-    void write (const char* data, usize len) {
-        for (auto i = 0; i < (int)len; ++i) {
-            putchar(data[i]);
+    void Console::write (const char* str) {
+        auto i = 0;
+        while (str[i]) {
+            Console::putchar(str[i]);
+            ++i;
         }
-    }
-
-    void writestring (const char* str) {
-        write(str, strlen(str));
     }
 }
 

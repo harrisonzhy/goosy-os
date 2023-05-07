@@ -1,6 +1,8 @@
 #include "kernel.hh"
 
+using namespace console;
+
 extern "C" void kernel_main () {
-    console::init();
-    console::writestring("Hello world :)\n");
+    Console::init();
+    Console::write("Hello world :)\n");
 }
