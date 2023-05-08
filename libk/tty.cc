@@ -10,10 +10,6 @@ namespace console {
         const u16 CURSOR_OFFSET  = 0x3D4;
     }
 
-    static u8   current_row;
-    static u8   current_column;
-    static u16* console_page;
-
     inline __attribute__((always_inline)) void Console::update_cursor(u16 trow, u16 tcolumn) {
         const u16 pos = trow * VGA_WIDTH + tcolumn;
         ports::outb(0x3D4, 0xF);
@@ -53,15 +49,14 @@ namespace console {
             }
         }
         for (auto i = 0; i < VGA_HEIGHT; ++i) {
-            auto n = (VGA_HEIGHT - 1) * VGA_WIDTH; 
+            auto n = (VGA_HEIGHT - 1) * VGA_WIDTH + i; 
             console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
         }
     }
 
     void Console::new_line() {
         current_column = 0;
-        ++current_row;
-        if (current_row == VGA_HEIGHT) {
+        if (++current_row == VGA_HEIGHT) {
             --current_row;
             scroll();
         }
@@ -69,20 +64,16 @@ namespace console {
 
     void Console::update_pos(i8 change) {
         i32 new_column = current_column + change;
-        if (new_column < 0) {
-            current_column = 0;
-            if (current_row > 0) {
-                --current_row;
-            }
-        }
-        else if (new_column >= VGA_WIDTH) {
+        if (new_column >= VGA_WIDTH) {
             current_column = new_column - VGA_WIDTH;
-            ++current_row;
-            if (current_row == VGA_HEIGHT) {
+            if (++current_row >= VGA_HEIGHT - 1) {
+                --current_row;
                 scroll();
             }
-            else {
-                current_column = new_column;
+        }
+        else if (new_column < 0) {
+            if (current_row > 0) {
+                --current_row;
             }
         }
     }
@@ -99,19 +90,6 @@ namespace console {
         }
         if (current_row == VGA_HEIGHT) {
             new_line(); // `newline()' changes `current_row' and scrolls
-        }
-    }
-
-    void Console::putback_char(const char c) {
-        console_page[current_row * VGA_WIDTH + current_column] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-        if (current_column == 0) {
-            if (current_row != 0) {
-                current_column = VGA_WIDTH - 1;
-                --current_row;
-            }
-        }
-        else {
-            --current_column;
         }
     }
 
@@ -134,48 +112,25 @@ namespace console {
         return digits;
     }
 
-    // `print(*)' overloads
-
-    void Console::print() {
-        update_cursor(current_row, current_column);
-    }
-
-    template<typename T, typename... Types>
-    void Console::print(T&& var1, Types&&... var2) {
-        put(var1);
-        print(var2...);
-    }
-
-    template<usize S, typename... Types>
-    void Console::print(const char (&var1)[S], Types&&... var2) {
-        print(str(var1, S), var2...);
-    }
-
-    template<typename... Types>
-    void Console::print_line(Types&&... var2) {
-        print(var2...);
-        new_line();
-        update_cursor(current_row, current_column);
-    }
-
-    // `put(*)' overloads
-
     void Console::put(const str string) {
         for (const auto c : string) {
             put_char(c);
+            update_pos(1);
         }
     }
 
     void Console::put(u32 num) {
-        const auto digits = num_digits(num, 10);
-        update_pos(digits - 1);
-        do {
-            const auto digit = char(num % 10 + '0');
-            putback_char(digit);
-            num /= 10;
+        constexpr auto base = 10;
+        if (num >= base) {
+            put(num / base);
         }
-        while (num > 0);
-        update_pos(digits + 1);
+        const auto digit = char(num % base + '0');
+        put_char(digit);
+        update_pos(1);
+    }
+
+    void Console::print() {
+        update_cursor(current_row, current_column);
     }
 
     void Console::put(const char c)  { put_char(c);   }
@@ -184,4 +139,8 @@ namespace console {
     void Console::put(const i16 num) { put(u32(num)); }
     void Console::put(const u8 num)  { put(u32(num)); }
     void Console::put(const i8 num)  { put(u32(num)); }
+
+    u8 Console::current_row;
+    u8 Console::current_column;
+    u16* Console::console_page;
 }
