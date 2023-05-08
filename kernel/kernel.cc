@@ -4,5 +4,5 @@ using namespace console;
 
 extern "C" void kernel_main() {
     Console::init();
-    Console::write("Hello world :)");
+    Console::print((u32)69);
 }

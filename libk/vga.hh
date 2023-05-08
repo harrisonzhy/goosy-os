@@ -25,11 +25,12 @@ extern "C" {
 #endif
 
 static inline auto vga_entry_color(enum vga_color fg, enum vga_color bg) -> u8 {
-	return fg | bg << 4;
+	return (fg | bg) << 4;
 }
 
-static inline auto vga_entry(unsigned char c, u8 color) -> u16 {	
-	return ((u16)color << 8) | (u16)c;
+static inline auto vga_entry(const char c, enum vga_color fg, enum vga_color bg) -> u16 {
+	const u16 color = (bg << 4) | fg;
+	return (color << 8) | c;
 }
 
 #ifdef __cplusplus
