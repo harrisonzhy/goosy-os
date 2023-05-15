@@ -2,11 +2,11 @@
 
 [extern _init]
 [extern _fini]
-[extern kernel_main]
+[extern main]
 
 global _start
 _start:
     call    _init
-    call    kernel_main
+    call    main ; call kernel `main()'
     call    _fini
     jmp     $

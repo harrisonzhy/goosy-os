@@ -5,17 +5,17 @@ vga_print:
     pusha
     mov     edx, VGA_SEGMENT
 
-vga_printstring:
+vga_print_string:
     mov     al, [ebx]
     mov     ah, 0xF
     cmp     al, 0 ; print until end of string
-    je      vga_printstring_done
+    je      vga_print_string_done
 
     mov     [edx], ax ; if not done, continue and loop
     add     ebx, 1 ; increment char pos
     add     edx, 2
-    jmp     vga_printstring
+    jmp     vga_print_string
 
-vga_printstring_done:
+vga_print_string_done:
     popa
     ret

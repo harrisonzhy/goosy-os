@@ -33,7 +33,7 @@ switch_protmode:
     mov     eax, cr0
     or      eax, 0x1 ; protected mode
     mov     cr0, eax
-    jmp     CODE_SEG:init_protmode
+    jmp     CODE_SEG: init_protmode
 
 [bits 32]
 init_protmode:

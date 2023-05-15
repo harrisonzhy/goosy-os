@@ -2,44 +2,12 @@
 
 console::Console C;
 namespace console {
-    namespace {
-        const u16 CURSOR_START   = 0xA;
-        const u16 CURSOR_END     = 0xB;
-        const u16 CURSOR_SHAPE   = 0x20;
-        const u16 CURSOR_CONTROL = 0x3D5;
-        const u16 CURSOR_OFFSET  = 0x3D4;
-    }
-
-    inline __attribute__((always_inline)) void Console::update_cursor(u16 trow, u16 tcolumn) {
-        const u16 pos = trow * VGA_WIDTH + tcolumn;
+    inline __attribute__((always_inline)) void Console::update_cursor(u16 row, u16 column) {
+        const u16 pos = row * VGA_WIDTH + column;
         ports::outb(0x3D4, 0xF);
         ports::outb(0x3D5, (const u8)(pos & 0xFF));
         ports::outb(0x3D4, 0xE);
         ports::outb(0x3D5, (const u8)((pos >> 8) & 0xFF));
-    }
-
-    void Console::init() {
-        current_row = 0;
-        current_column = 0;
-        console_page = (u16*)(0xB8000);
-        for (auto i = 0; i < VGA_HEIGHT; ++i) {
-            for (auto j = 0; j < VGA_WIDTH; ++j) {
-                auto n = i * VGA_WIDTH + j;
-                console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-            }
-        }
-        ports::outb(CURSOR_OFFSET, CURSOR_START);
-        ports::outb(CURSOR_CONTROL, CURSOR_SHAPE);
-        ports::outb(CURSOR_OFFSET, CURSOR_START);
-        // upper two bits are reserved
-        auto existing = ports::inb(CURSOR_CONTROL) & 0xC;
-        // enable cursor by setting bit 5 to 0, and set start position to 0
-        ports::outb(CURSOR_CONTROL, existing);
-        ports::outb(CURSOR_OFFSET, CURSOR_END);
-        // upper three bits are reserved for cursor end
-        existing = ports::inb(CURSOR_CONTROL) & 0xE;
-        // set end position to 0xF (block)
-        ports::outb(CURSOR_CONTROL, existing);
     }
 
     void Console::scroll() {

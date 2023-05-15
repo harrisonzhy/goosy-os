@@ -2,11 +2,10 @@
 
 using namespace console;
 
-extern "C" void kernel_main() {
-    Console::init();
-    for (auto i = 0; i < 500; ++i) {
-        Console::print(124);
-        Console::print("Test text");
-        Console::print(124);
+extern "C" void main() {
+    Array<int, 500> a;
+    a.fill(124);
+    for (usize i = 0; i < a.len(); ++i) {
+        Console::print(a[i]);
     }
 }
