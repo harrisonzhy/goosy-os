@@ -16,15 +16,15 @@ namespace console {
                 console_page[i * VGA_WIDTH + j] = console_page[(i + 1) * VGA_WIDTH + j];
             }
         }
-        for (auto i = 0; i < VGA_HEIGHT; ++i) {
-            auto n = (VGA_HEIGHT - 1) * VGA_WIDTH + i; 
+        for (auto i = 0; i < VGA_HEIGHT - 1; ++i) {
+            auto n = VGA_HEIGHT * VGA_WIDTH + i;
             console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
         }
     }
 
     void Console::new_line() {
         current_column = 0;
-        if (++current_row == VGA_HEIGHT) {
+        if (current_row >= VGA_HEIGHT) {
             --current_row;
             scroll();
         }

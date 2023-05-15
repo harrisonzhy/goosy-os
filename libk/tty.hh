@@ -32,7 +32,6 @@ namespace console {
 
             static void update_cursor(u16 trow, u16 tcolumn);
             static void update_pos(i8 change);
-            static void init();
             static void scroll();
             static void new_line();
             static void write(const char* str);
