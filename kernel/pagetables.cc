@@ -30,7 +30,6 @@ auto PageDirectory::va_to_pa(const uptr addr) const -> uptr {
     return pt.unwrap().va_to_pa(addr);
 }
 
-
 auto PageDirectoryEntry::add_pagetable(const uptr pt_addr, const u8 perm) -> signed {
     if (get_entry_address() != 0) [[unlikely]] {
         return -1;
@@ -39,7 +38,6 @@ auto PageDirectoryEntry::add_pagetable(const uptr pt_addr, const u8 perm) -> sig
     return 0;
 }
 
-// set `%cr3' to address of page directory
 void PageDirectory::set_page_directory() const {
     asm volatile(
         "mov %0, %%cr3;"
@@ -49,7 +47,6 @@ void PageDirectory::set_page_directory() const {
     );
 }
 
-// enable paging and protection bits in `%cr0'
 void pagetables::enable_paging() {
     u32 cr0 = 0;
     asm volatile(
