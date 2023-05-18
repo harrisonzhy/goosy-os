@@ -30,12 +30,11 @@ class Array {
         [[nodiscard]] auto constexpr data()        -> T*       { return &arr[0]; }
         [[nodiscard]] auto constexpr data() const  -> const T* { return &arr[0]; }
 
-        // checks for out-of-bounds accesses
         [[nodiscard]] auto constexpr at(usize i) const -> Option<T> {
             if (i < S) {
                 return { arr[i] };
             }
-            return { };
+            return { }; // checks for out-of-bounds accesses
         }
         
         [[nodiscard]] auto constexpr get(usize i) const -> Option<T> {

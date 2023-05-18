@@ -38,13 +38,12 @@ namespace pagetables {
             // [PAT] return whether page attribute table is supported
             [[nodiscard]] auto constexpr using_pat()     const -> bool { return _data & 0b100000000; }
 
-            // return the address of the page pointed to by this PTE (upper 24 bits)
-            [[nodiscard]] auto constexpr get_entry_address()  const -> uptr { return _data & 0x0FFFFFF00; }
+            // return the address of the page pointed to by this PTE (lower 24 bits)
+            [[nodiscard]] auto constexpr get_entry_address()  const -> uptr { return _data & 0xFFFFFF00; }
         
             // create physical address from virtual address `addr' and permissions `perm'
             auto map(uptr addr, u8 perm) -> signed {
-                _data = addr;
-                _data |= perm;
+                _data = addr | perm;
                 return 0;
             }
 
@@ -54,7 +53,7 @@ namespace pagetables {
             }
 
         private :
-            u32 _data = 0;
+            u32 _data;
     }__attribute__((packed));
 
     class Pagetable {
@@ -97,7 +96,7 @@ namespace pagetables {
             [[nodiscard]] auto constexpr accessed()      const -> bool { return _data & 0b000100000; }
 
             // return the address of the pagetable pointed to by this PDE (upper 24 bits)
-            [[nodiscard]] auto constexpr get_entry_address()   const -> uptr { return _data & 0x0FFFFFF00; }
+            [[nodiscard]] auto constexpr get_entry_address() const -> uptr { return _data & 0x0FFFFFF00; }
 
             // return reference to the pagetable pointed to by this PDE
             [[nodiscard]] auto constexpr get_entry_pagetable() const -> Option<Pagetable&> {
@@ -129,7 +128,7 @@ namespace pagetables {
             auto add_pagetable(const uptr pt_addr, const u8 perm) -> signed;
 
         private :
-            u32 _data = 0;
+            u32 _data;
     }__attribute__((packed));
 
     class PageDirectory {
