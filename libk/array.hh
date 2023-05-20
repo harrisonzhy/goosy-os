@@ -21,6 +21,9 @@ class Array {
         [[nodiscard]] auto constexpr end()         -> iterator<T> { return iterator<T>(&m_arr[S]); }
         [[nodiscard]] auto constexpr end() const   -> iterator<T> { return iterator<T>(&m_arr[S]); }
 
+        [[nodiscard]] auto constexpr penultimate()         -> iterator<T> { return iterator<T>(&m_arr[S - 1]); }
+        [[nodiscard]] auto constexpr penultimate() const   -> iterator<T> { return iterator<T>(&m_arr[S - 1]); }
+
         [[nodiscard]] auto constexpr first()       -> T&       { return m_arr[0]; }
         [[nodiscard]] auto constexpr first() const -> const T& { return m_arr[0]; }
 
@@ -32,14 +35,14 @@ class Array {
 
         [[nodiscard]] auto constexpr at(usize i) const -> Option<T> {
             if (i < S) {
-                return { arr[i] };
+                return { m_arr[i] };
             }
             return { }; // checks for out-of-bounds accesses
         }
         
         [[nodiscard]] auto constexpr get(usize i) const -> Option<T> {
             if (i < S) {
-                return { arr[i] };
+                return { m_arr[i] };
             }
             return { };
         }

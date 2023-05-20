@@ -8,44 +8,50 @@ namespace allocator {
     class BlockMetadata {
         public :
             BlockMetadata(const BlockMetadata& _) = delete;
-            BlockMetadata(const usize size, const bool is_allocatable, Block* parent, u32 buddy) : 
-                m_size(size), m_is_allocatable(is_allocatable), m_parent(parent), m_buddy(buddy) {}
-            BlockMetadata() : m_size(0), m_is_allocatable(false), m_parent(nullptr), m_buddy(0) {}
+            BlockMetadata(const usize size, Block* block, const bool allocatable, const u32 buddy_address,
+                BlockMetadata* parent) : m_size(size), m_block(block), m_allocatable(allocatable) {}
+            BlockMetadata(BlockMetadata* parent) : m_size(0), m_block(nullptr), m_allocatable(false) {}
+            BlockMetadata() : m_size(0), m_block(nullptr), m_allocatable(false) {}
 
             usize m_size;
-            bool m_is_allocatable;
-            Block* m_parent;
-            u32 m_buddy;
-    }__attribute((packed))__;
+            Block* m_block;
+            bool m_allocatable;
+    };
 
     class Block {
         public :
-            Block(const Block& _) = delete;
-            Block(BlockMetadata* data, Block* prev, Block* next) : m_data(data), m_prev(prev), m_next(next) {}
-            Block() : m_data(nullptr), m_prev(nullptr), m_next(nullptr) {}
+            Block(const Block&  _) = delete;
+            Block(const u32 address, const u32 buddy_address, bool allocatable) : m_address(address),
+                m_buddy_address(buddy_address), m_allocatable(allocatable) {}
+            Block() : m_address(0), m_buddy_address(0), m_allocatable(false) {}
 
-            BlockMetadata* m_data;
-            Block* m_prev;
-            Block* m_next;
+            u32 m_address;
+            u32 m_buddy_address;
+            bool m_allocatable;
     };
 
     class BuddyAllocator {
         public :
             BuddyAllocator(const BuddyAllocator& _) = delete;
             BuddyAllocator() {
-                usize l = m_free_partitions.len() - 1;
-                auto dummy_block = m_free_partitions[l];
-                dummy_block->m_next = create_new_block(l, MAX_ADDRESS - MIN_ADDRESS, true, nullptr, 0);
+                auto constexpr const l = m_free_partitions.len() - 1;
+                m_free_partitions[l].m_address = MIN_ADDRESS;
+                m_free_partitions[l].m_buddy_address = 0;
+                m_free_partitions[l].m_allocatable = false;
+
+                m_metadata[0].m_size = MAX_ADDRESS - MIN_ADDRESS;
+                m_metadata[0].m_block = &m_free_partitions[l];
+                m_metadata[0].m_allocatable = true;
             }
 
-            [[nodiscard]] auto kalloc(const usize size) -> uptr;
+            [[nodiscard]] auto kalloc(usize size) -> uptr;
 
             [[nodiscard]] auto kfree(const uptr addr) -> signed;
 
             void coalesce(Block* block);
 
             // get index into `_metadata' array given virtual address `addr'
-            [[nodiscard]] auto va_to_index(u32 addr) -> signed {
+            [[nodiscard]] auto pa_to_index(u32 addr) -> signed {
                 if (!check_address(addr)) {
                     return -1;
                 }
@@ -56,14 +62,11 @@ namespace allocator {
                 return addr >= MIN_ADDRESS && addr <= MAX_ADDRESS && (addr & (PAGE_SIZE - 1)) == 0;
             }
 
-            [[nodiscard]] auto BuddyAllocator::create_new_block(const usize i, const usize size, 
-                const bool is_allocatable, Block* parent, u32 buddy) -> Block*;
-
         private :
-            static unsigned long long constexpr const MIN_ADDRESS = 0x200000;
-            static unsigned long long constexpr const MAX_ADDRESS = 0xFFFFFFFF;
-            static unsigned long long constexpr const PAGE_SIZE = 0x1000;
-            Array<Block*, 0x20> m_free_partitions;
-            Array<BlockMetadata*, (MAX_ADDRESS - MIN_ADDRESS) / 4096> m_metadata;
+            static u32 constexpr const MIN_ADDRESS = 0x200000;
+            static u32 constexpr const MAX_ADDRESS = 0xFFFFFFFF;
+            static u32 constexpr const PAGE_SIZE = 0x1000;
+            static Array<Block, 0x20> m_free_partitions;
+            static Array<BlockMetadata, 0x20> m_metadata;
     };
 }

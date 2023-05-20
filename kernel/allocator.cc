@@ -3,37 +3,43 @@
 
 using namespace allocator;
 
-auto BuddyAllocator::kalloc(const usize size) -> uptr {
+Array<Block, 0x20> BuddyAllocator::m_free_partitions;
+Array<BlockMetadata, 0x20> BuddyAllocator::m_metadata;
+
+auto BuddyAllocator::kalloc(usize size) -> uptr {
     const usize aligned_size = size;
-    signed i = m_free_partitions.len() - 1;
-    auto current_block = m_free_partitions[i]->m_next;
+    for (usize i = aligned_size / PAGE_SIZE; i < m_free_partitions.len(); ++i) {
+        // search for smallest possible block
+        if (m_free_partitions[i].m_allocatable) {
+            const auto current_block = &m_free_partitions[i];
+            const auto new_block_addr = current_block->m_address;
 
-    while (i > 0 && (usize)(1 << (i - 1)) > aligned_size && current_block) {
-        if (current_block && !m_free_partitions[i - 1]->m_next) {
-            // create free block in `m_free_partitions[i - 1]' only if there are no free blocks there
-            auto current_block_size = current_block->m_data->m_size;            
-            m_free_partitions[i - 1]->m_next = create_new_block(i - 1, current_block_size, true, nullptr, 0);
+            usize current_block_size = 1 << i;
+            while (current_block_size > aligned_size) {
+                const auto new_block_size = current_block_size >> 1;
+
+                // add free buddy to `m_free_partitions[i - 1]'
+                m_free_partitions[i - 1].m_address = new_block_addr + new_block_size;
+                m_free_partitions[i - 1].m_buddy_address = new_block_addr;
+                m_free_partitions[i - 1].m_allocatable = true;
+
+                // update free buddy metadata in `m_metadata[m_i]'
+                auto m_i = pa_to_index(m_free_partitions[i - 1].m_address);
+                m_metadata[m_i].m_size = new_block_size;
+                m_metadata[m_i].m_block = &m_free_partitions[i - 1];
+                m_metadata[m_i].m_allocatable = true;
+
+                current_block_size >>= 1;
+            }
+            return uptr(new_block_addr);
         }
-
-        --i;
-        current_block = m_free_partitions[i]->m_next;
     }
-
-    // fill corresponding entry in `m_metadata' to indicate allocation
-    usize m_i = va_to_index()
+    return 0;
 }
 
 auto BuddyAllocator::kfree(const uptr addr) -> signed {
-
     return 0;
 }
 
 void BuddyAllocator::coalesce(Block* block) {
-}
-
-auto BuddyAllocator::create_new_block(const usize i, const usize size,
-    const bool is_allocatable, Block* parent, u32 buddy) -> Block* {
-    auto block_data = BlockMetadata(size, is_allocatable, parent, buddy);
-    auto block = Block(&block_data, m_free_partitions[i], nullptr);
-    return &block;
 }
