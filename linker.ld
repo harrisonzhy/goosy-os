@@ -11,13 +11,13 @@ SECTIONS {
     }
 
     .rodata BLOCK(4K) : ALIGN(4K) {
-        start_ctors = .;
+        __ctors_start__ = .;
         *(SORT(.ctors*))
-        end_ctors = .;
+        __ctors_end__ = .;
 
-        start_dtors = .;
+        __ctors_start__ = .;
         *(SORT(.dtors*))
-        end_dtors = .;
+        __ctors_end__ = .;
 
         *(.rodata)
         *(.gnu.linkonce.r*)
@@ -26,6 +26,7 @@ SECTIONS {
     .bss BLOCK(4K) : ALIGN(4K) {
         *(COMMON)
         *(.bss)
+        __bss_end__ = .;
     }
 
     .init : {

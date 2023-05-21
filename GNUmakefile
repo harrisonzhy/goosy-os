@@ -32,7 +32,7 @@ dump: kernel.elf
 	objdump -d kernel.elf > dump.txt
 
 run: goosyos.bin
-	qemu-system-i386 -hda $<
+	qemu-system-i386 -hda $< -d int
 
 run-debug: goosyos.bin
 	qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown

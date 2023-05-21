@@ -100,11 +100,12 @@ namespace pagetables {
 
             // return reference to the pagetable pointed to by this PDE
             [[nodiscard]] auto constexpr get_entry_pagetable() const -> Option<Pagetable&> {
-                const auto pt_addr = get_entry_address();
-                if (!pt_addr) {
+                const auto addr = get_entry_address();
+                if (!addr) {
                     return Option<Pagetable&>();
                 }
-                return Option<Pagetable&>(*(Pagetable*)pt_addr);
+                const auto pt_addr = reinterpret_cast<Pagetable*>(addr);
+                return Option<Pagetable&>(*pt_addr);
             }
 
             // map virtual address `va' to physical address `pa' with permissions `perm'

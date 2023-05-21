@@ -24,7 +24,7 @@ namespace console {
 
     void Console::new_line() {
         current_column = 0;
-        if (current_row >= VGA_HEIGHT) {
+        if (current_row == VGA_HEIGHT) {
             --current_row;
             scroll();
         }

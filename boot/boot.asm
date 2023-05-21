@@ -1,7 +1,7 @@
 KERNEL_OFFSET equ 0x1000
 
 [bits 16] ; BIOS jumps to bootloader in real mode
-[org 0x7c00]
+[org 0x7C00]
     mov     [BOOT_DRIVE], dl
     xor     ax, ax
     mov     es, ax
@@ -22,7 +22,7 @@ KERNEL_OFFSET equ 0x1000
 [bits 16]
 load_kernel:
     mov     bx, KERNEL_OFFSET
-    mov     al, 32 ; change as kernel grows in size
+    mov     al, 32 ; sectors to load
     call    disk_load
     ret
 
