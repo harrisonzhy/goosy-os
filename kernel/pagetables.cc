@@ -9,7 +9,8 @@ auto PageDirectory::map(const u32 va, const u32 pa, const u8 perm) -> signed {
 }
 
 auto PageDirectory::try_map(const u32 va, const u32 pa, const u8 perm) -> signed {
-    auto& pt = _entries[va_to_index(va)];
+    const auto i = va_to_index(va);
+    auto& pt = _entries[i];
     if (pt.get_entry_address() == 0) {
         
         // TODO: buddy allocation
@@ -23,7 +24,8 @@ auto PageDirectory::try_map(const u32 va, const u32 pa, const u8 perm) -> signed
 }
 
 auto PageDirectory::va_to_pa(const uptr addr) const -> uptr {
-    auto pt = _entries[va_to_index(addr)].get_entry_pagetable();
+    const auto i = va_to_index(addr);
+    auto pt = _entries[i].get_entry_pagetable();
     if (pt.none()) {
         return uptr(-1);
     }
@@ -31,7 +33,8 @@ auto PageDirectory::va_to_pa(const uptr addr) const -> uptr {
 }
 
 auto PageDirectoryEntry::add_pagetable(const uptr pt_addr, const u8 perm) -> signed {
-    if (get_entry_address() != 0) [[unlikely]] {
+    const auto entry_addr = get_entry_address();
+    if (entry_addr != 0) [[unlikely]] {
         return -1;
     }
     _data = pt_addr | PTE_P | PTE_W;
