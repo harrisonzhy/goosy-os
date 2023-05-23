@@ -89,9 +89,9 @@ namespace console {
 
     void Console::put(u32 num) {
         constexpr auto base = 10;
-        if (num >= base) {
-            put(num / base);
-        }
+        // if (num >= base) {
+        //     put(num / base);
+        // }
         const auto digit = char(num % base + '0');
         put_char(digit);
         update_pos(1);

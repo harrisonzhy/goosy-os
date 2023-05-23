@@ -25,13 +25,14 @@ auto BuddyAllocator::kmalloc(const usize size) -> uptr {
                 new_block->set_allocatable(false);
 
                 curr_block_size /= 2;
+                Console::print(curr_block_size, " ");
             }
 
             _free_blocks[s_i].m_allocatable = false;
             return uptr(alloc_addr);
         }
     }
-    return uptr(0);
+    return uptr(-1);
 }
 
 auto BuddyAllocator::kfree(const uptr addr) -> signed {
