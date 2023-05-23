@@ -14,7 +14,7 @@ auto BuddyAllocator::kmalloc(const usize size) -> uptr {
             const auto alloc_addr = _free_blocks[s_i].m_address;
 
             usize curr_block_size = 1 << s_i;
-            for (; curr_block_size > aligned_size; --i) {
+            for (; curr_block_size >= aligned_size; --i) {
                 _free_blocks[i].m_address = alloc_addr + curr_block_size;
                 _free_blocks[i].m_allocatable = true;
 
@@ -24,10 +24,8 @@ auto BuddyAllocator::kmalloc(const usize size) -> uptr {
                 new_block->set_size(aligned_size_log);
                 new_block->set_allocatable(false);
 
-                curr_block_size /= 2;
-                Console::print(curr_block_size, " ");
+                curr_block_size >>= 1;
             }
-
             _free_blocks[s_i].m_allocatable = false;
             return uptr(alloc_addr);
         }
