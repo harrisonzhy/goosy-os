@@ -18,12 +18,14 @@ namespace allocator {
             void set_size(const u8 size) { m_data &= 0xF0; m_data |= size; }
 
             void set_allocatable(bool allocatable) {
-                if (allocatable) {
-                    m_data = (1 << 5) | m_data;
-                }
-                else {
-                    m_data &= 0xEF;
-                }
+                m_data = (m_data & (~(1 << 4))) | (allocatable << 4);
+
+                // if (allocatable) {
+                //     m_data = (1 << 5) | m_data;
+                // }
+                // else {
+                //     m_data &= 0xEF;
+                // }
             }
 
             u8 m_data;
@@ -43,8 +45,12 @@ namespace allocator {
     class BuddyAllocator {
         public :
             BuddyAllocator(const BuddyAllocator& _) = delete;
-            BuddyAllocator() : m_allocated(PAGE_SIZE) {
-                m_free_blocks[0x1F].m_allocatable = true;
+            BuddyAllocator() : current_block(&_memory_blocks[0]) {
+                for (usize i = 1; i < _memory_blocks.len(); ++i) {
+                    _memory_blocks[i].m_prev = &_memory_blocks[i - 1];
+                    _memory_blocks[i - 1].m_next = &_memory_blocks[i];
+                }
+                _free_blocks[0x1F].m_allocatable = true;
             }
 
             [[nodiscard]] auto kmalloc(const usize size) -> uptr;
@@ -55,7 +61,6 @@ namespace allocator {
 
             // dynamically allocate more `Block()' objects
             [[nodiscard]] auto simple_kmalloc(const usize size) -> uptr;
-            [[nodiscard]] auto simple_kmalloc2(const usize size) -> uptr;
 
             // get index into `m_metadata' array given virtual address `addr'
             [[nodiscard]] auto va_to_index(const u32 addr) -> signed {
@@ -72,11 +77,20 @@ namespace allocator {
                 return bounded && aligned;
             }
 
-        private :
-            Array<Block, 0x20> m_memory_blocks;
-            Array<Partition, 0x20> m_free_blocks;
+            [[nodiscard]] auto get_next_block() -> Block*;
 
-            u32 m_allocated;
+            void print_memory_map() {
+                for (auto i = 0; i < 0x20; ++i) {
+                    const u32 allocatable = _free_blocks[i].m_allocatable;
+                    Console::print("[", _free_blocks[i].m_address, " ", allocatable, "] ");
+                }
+            }
+
+        private :
+            Array<Block, 0x20> _memory_blocks;
+            Array<Partition, 0x20> _free_blocks;
+            Block* current_block;
+
             static u32 constexpr const MIN_ADDRESS = 0x200000;
             static u32 constexpr const MAX_ADDRESS = 0xFFFFFFFF;
             static u32 constexpr const PAGE_SIZE = 0x1000;
