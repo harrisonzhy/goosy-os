@@ -15,7 +15,7 @@ CRTN_OBJ = boot/crtn.o
 CRT0_OBJ = boot/crt0.o
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
-OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(CRTN_OBJ)
+OBJ_LINK_LIST:=$(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(CRTN_OBJ)
 
 all: run
 
@@ -37,9 +37,6 @@ run: goosyos.bin
 run-debug: goosyos.bin
 	qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown
 
-run-console: goosyos.bin
-	qemu-system-i386 -hda $< -display curses
-
 gdb: goosyos.bin kernel.elf
 	qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown & ${GDB}
 
@@ -57,6 +54,6 @@ clean:
 	rm -rf *.o boot/*.bin boot/*.o libk/*.o libk/*/*.o kernel/*.o obj/*
 
 summary:
-	find . -name '*.s' | xargs wc -l &&
-	find . -name '*.cc'  | xargs wc -l &&
+	find . -name '*.s'   | xargs wc -l && \
+	find . -name '*.cc'  | xargs wc -l && \
 	find . -name '*.hh'  | xargs wc -l

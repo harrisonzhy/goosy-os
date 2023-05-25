@@ -6,12 +6,12 @@ namespace ports {
     }
 
     auto inb(u16 port) -> u8 {
-        u8 ret;
+        u8 ret = 0;
         asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
         return ret;
     }
 
     void io_wait() {
-        ports::outb(0x80, 0);
+        outb(0x80, 0);
     }
 }

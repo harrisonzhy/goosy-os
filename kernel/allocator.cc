@@ -74,11 +74,3 @@ auto BuddyAllocator::kmalloc_next_block() -> Block* {
     current_block->m_next = &new_blocks[0];
     return current_block->m_next;
 }
-
-auto BuddyAllocator::simple_kmalloc(const usize size) -> uptr {
-    const auto new_partition_size = size / PAGE_SIZE;
-    const auto new_partition_objects = reinterpret_cast<Block*>(kmalloc(new_partition_size * sizeof(Block)));
-    new_partition_objects[1].m_data = 0b11100000;
-    return (uptr)new_partition_objects;
-}
-

@@ -55,9 +55,6 @@ namespace allocator {
 
             void coalesce(Block* block);
 
-            // dynamically allocate more `Block()' objects
-            [[nodiscard]] auto simple_kmalloc(const usize size) -> uptr;
-
             // get index into `m_metadata' array given virtual address `addr'
             [[nodiscard]] auto va_to_index(const u32 addr) -> signed {
                 const auto valid = check_address(addr);
@@ -73,6 +70,7 @@ namespace allocator {
                 return bounded && aligned;
             }
 
+            // dynamically allocate more `Block()' objects if needed
             [[nodiscard]] auto kmalloc_next_block() -> Block*;
 
             [[nodiscard]] inline __attribute__((always_inline)) auto log_two_ceil(const u32 num) -> u8 {
@@ -81,7 +79,7 @@ namespace allocator {
 
             void print_memory_map() {
                 k_console.print("FREE MEMORY\n");
-                for (usize i = 0; i < _memory_blocks.len(); ++i) {
+                for (usize i = 0; i < _free_blocks.len(); ++i) {
                     const u32 allocatable = _free_blocks[i].m_allocatable;
                     k_console.print("[", _free_blocks[i].m_address, " ", allocatable, "]");
                 }
@@ -95,7 +93,7 @@ namespace allocator {
             }
 
         private :
-            Array<Block, 0x2> _memory_blocks;
+            Array<Block, 0x3> _memory_blocks;
             Array<Partition, 0x14> _free_blocks;
             Block* current_block;
 
