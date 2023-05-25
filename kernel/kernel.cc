@@ -15,4 +15,8 @@ extern "C" void main() {
     k_allocator.print_memory_map();
     k_allocator.kmalloc(1 << 13);
     k_allocator.print_memory_map();
+    k_allocator.kmalloc(1 << 15);
+    k_allocator.print_memory_map();
+    // k_allocator.kmalloc(1 << 13);
+    // k_allocator.print_memory_map();
 }

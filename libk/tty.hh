@@ -27,14 +27,6 @@ namespace console {
                 ports::outb(CURSOR_CONTROL, existing);
             }
 
-            void update_cursor(u16 trow, u16 tcolumn);
-            void update_pos(i8 change);
-            void scroll();
-            void new_line();
-            void write(const char* str);
-            void put_char(const char c);
-            auto num_digits(usize num, u8 base) -> u8;
-
             // `print(...)' overloads
             void print();
 
@@ -56,6 +48,14 @@ namespace console {
                 update_cursor(current_row, current_column);
             }
 
+            inline __attribute__((always_inline)) void update_cursor(u16 row, u16 column) {
+                const u16 pos = row * VGA_WIDTH + column;
+                ports::outb(0x3D4, 0xF);
+                ports::outb(0x3D5, (const u8)(pos & 0xFF));
+                ports::outb(0x3D4, 0xE);
+                ports::outb(0x3D5, (const u8)((pos >> 8) & 0xFF));
+            }
+
             // `put(...)' overloads
             void put(const str string);
             void put(u32 num);
@@ -65,6 +65,14 @@ namespace console {
             void put(const i16 num);
             void put(const u8 num);
             void put(const i8 num);
+
+            // void update_cursor(u16 row, u16 column);
+            void update_pos(i8 change);
+            void scroll();
+            void new_line();
+            void write(const char* str);
+            void put_char(const char c);
+            auto num_digits(usize num, u8 base) -> u8;
 
         private :
             const isize VGA_WIDTH  = 80;

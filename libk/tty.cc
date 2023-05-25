@@ -2,14 +2,6 @@
 
 console::Console C;
 namespace console {
-    inline __attribute__((always_inline)) void Console::update_cursor(u16 row, u16 column) {
-        const u16 pos = row * VGA_WIDTH + column;
-        ports::outb(0x3D4, 0xF);
-        ports::outb(0x3D5, (const u8)(pos & 0xFF));
-        ports::outb(0x3D4, 0xE);
-        ports::outb(0x3D5, (const u8)((pos >> 8) & 0xFF));
-    }
-
     void Console::scroll() {
         for (auto i = 1; i < VGA_HEIGHT; ++i) {
             for (auto j = 0; j < VGA_WIDTH; ++j) {
@@ -28,12 +20,13 @@ namespace console {
             current_row = VGA_HEIGHT - 1;
             scroll();
         }
-        current_column = -1;
+        current_column = 0;
     }
 
     void Console::put_char(const char c) {
         if (c == '\n') {
             new_line();
+            --current_column;
             return;
         }
         console_page[current_row * VGA_WIDTH + current_column] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);

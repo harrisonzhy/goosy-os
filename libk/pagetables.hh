@@ -18,23 +18,23 @@ namespace pagetables {
             PagetableEntry() : _data(0) {}
 
             // [P] return whether this PTE is present
-            [[nodiscard]] auto constexpr present()       const -> bool { return _data & 0b000000001; }
+            [[nodiscard]] auto constexpr present()       const -> bool { return _data & 1; }
             // [R/W] return whether this PTE is writable
-            [[nodiscard]] auto constexpr writable()      const -> bool { return _data & 0b000000010; }
+            [[nodiscard]] auto constexpr writable()      const -> bool { return _data & 0b10; }
             // [U/S] return whether this PTE is user-accessible
-            [[nodiscard]] auto constexpr user()          const -> bool { return _data & 0b000000100; }
+            [[nodiscard]] auto constexpr user()          const -> bool { return _data & 0b100; }
             
             // [PWT] return whether write-through caching or write-back is enabled
-            [[nodiscard]] auto constexpr write_through() const -> bool { return _data & 0b000001000; }
+            [[nodiscard]] auto constexpr write_through() const -> bool { return _data & 0b1000; }
             // [PCD] return whether this page will be cached
-            [[nodiscard]] auto constexpr cache_disable() const -> bool { return _data & 0b000010000; }
+            [[nodiscard]] auto constexpr cache_disable() const -> bool { return _data & 0b10000; }
             
             // [A] return whether this PTE was read during virtual address translation
-            [[nodiscard]] auto constexpr accessed()      const -> bool { return _data & 0b000100000; }
+            [[nodiscard]] auto constexpr accessed()      const -> bool { return _data & 0b100000; }
             // [D] return whether this page is dirty (has been written to)
-            [[nodiscard]] auto constexpr dirty()         const -> bool { return _data & 0b001000000; }
+            [[nodiscard]] auto constexpr dirty()         const -> bool { return _data & 0b1000000; }
             // [G] return whether to invalidate the TLB entry for this page upon `mov %cr3'
-            [[nodiscard]] auto constexpr global()        const -> bool { return _data & 0b010000000; }
+            [[nodiscard]] auto constexpr global()        const -> bool { return _data & 0b10000000; }
             // [PAT] return whether page attribute table is supported
             [[nodiscard]] auto constexpr using_pat()     const -> bool { return _data & 0b100000000; }
 
