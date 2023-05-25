@@ -11,9 +11,9 @@ KERNEL_OFFSET equ 0x1000
     call    switch_protmode
     jmp     $ ; never gets here
 
-%include "boot/disk.asm"
-%include "boot/gdt.asm"
-%include "boot/vga.asm"
+%include "boot/disk.s"
+%include "boot/gdt.s"
+%include "boot/vga.s"
 
 ; bx: memory location to place read data
 ; dh: number of sectors to read

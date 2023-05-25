@@ -72,8 +72,8 @@ namespace console {
         private :
             static const isize VGA_WIDTH  = 80;
             static const isize VGA_HEIGHT = 25;
-            static u8 current_row;
-            static u8 current_column;
+            static u16 current_row;
+            static u16 current_column;
             static u16* console_page;
         
             const u16 CURSOR_START   = 0xA;

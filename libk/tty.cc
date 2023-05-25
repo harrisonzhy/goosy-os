@@ -1,7 +1,5 @@
 #include "tty.hh"
 
-
-
 console::Console C;
 namespace console {
     inline __attribute__((always_inline)) void Console::update_cursor(u16 row, u16 column) {
@@ -28,46 +26,35 @@ namespace console {
         if (c == '\n') {
             ++current_row;
             if (current_row == VGA_HEIGHT) {
-                current_row = VGA_HEIGHT - 1;
+                --current_row;
                 scroll();
             }
             return;
         }
         console_page[current_row * VGA_WIDTH + current_column] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-        // ++current_column;
-        // if (current_column == VGA_WIDTH) {
-        //     current_column = 0;
-        //     current_row = VGA_HEIGHT - 1;
-        //     scroll();
-        // }
-    }
-
-    void Console::put(const str string) {
-        for (const auto& c : string) {
-            put_char(c);
-        }
     }
 
     void Console::update_pos(i8 delta) {
-        if (current_column == 0 && delta <= 0) {
-            return;
-        }
-
-        const auto new_column = current_column + delta;
-        if (new_column >= current_column && new_column < VGA_WIDTH) {
-            current_column = new_column;
-        }
-        else if (new_column >= VGA_WIDTH) {
-            current_column = new_column % VGA_WIDTH;
-            current_row = current_row + (new_column - current_column) / VGA_WIDTH;
+        if (delta > 0) {
+            current_column += delta % VGA_WIDTH;
+            current_row += delta / VGA_WIDTH;
+            if (current_column >= VGA_WIDTH) {
+                current_row += current_column / VGA_WIDTH;
+                current_column %= VGA_WIDTH;
+            }
             if (current_row >= VGA_HEIGHT) {
                 current_row = VGA_HEIGHT - 1;
                 scroll();
             }
         }
-        // TODO: finish this case for backspaces
-        else if (new_column < current_column) {
-            current_column = new_column;
+        else if (delta == -1) {
+            if (current_column == 0) {
+                current_column = VGA_WIDTH - 1;
+                --current_row;
+            }
+            else {
+                --current_column;
+            }
         }
     }
 
@@ -94,6 +81,13 @@ namespace console {
         update_pos(digits);
     }
 
+    void Console::put(const str string) {
+        for (const auto& c : string) {
+            put_char(c);
+            update_pos(1);
+        }
+    }
+
     void Console::print() {
         update_cursor(current_row, current_column);
     }
@@ -105,7 +99,7 @@ namespace console {
     void Console::put(const u8 num)  { put(u32(num)); }
     void Console::put(const i8 num)  { put(u32(num)); }
 
-    u8 Console::current_row;
-    u8 Console::current_column;
+    u16 Console::current_row;
+    u16 Console::current_column;
     u16* Console::console_page;
 }

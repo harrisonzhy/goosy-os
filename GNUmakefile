@@ -8,7 +8,7 @@ OBJ = ${CPP_SOURCES:.cc=.o}
 
 CC = i686-elf-g++
 CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -Wall -O2 -flto -ffat-lto-objects -fno-threadsafe-statics -fno-stack-protector -fno-rtti -fno-exceptions
-GDB = gdb
+GDB = x86_64-elf-gdb
 
 CRTI_OBJ = boot/crti.o
 CRTN_OBJ = boot/crtn.o
@@ -41,16 +41,15 @@ run-console: goosyos.bin
 	qemu-system-i386 -hda $< -display curses
 
 gdb: goosyos.bin kernel.elf
-	qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown &
-	${GDB}
+	qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown & ${GDB}
 
 %.o: %.cc ${HEADERS}
 	${CC} ${CFLAGS} -c $< -o $@
 
-%.o: %.asm
+%.o: %.s
 	nasm $< -f elf -o $@
 
-%.bin: %.asm
+%.bin: %.s
 	nasm $< -f bin -o $@
 
 clean:
@@ -58,6 +57,6 @@ clean:
 	rm -rf *.o boot/*.bin boot/*.o libk/*.o libk/*/*.o kernel/*.o obj/*
 
 summary:
-	find . -name '*.asm' | xargs wc -l &&
+	find . -name '*.s' | xargs wc -l &&
 	find . -name '*.cc'  | xargs wc -l &&
 	find . -name '*.hh'  | xargs wc -l

@@ -4,8 +4,8 @@
 #include "tty.hh"
 
 using namespace console;
-namespace allocator {
 
+namespace allocator {
     class Block {
         public :
             Block(const Block& _) = delete;
