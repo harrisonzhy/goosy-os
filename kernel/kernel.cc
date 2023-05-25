@@ -3,11 +3,14 @@
 using namespace console;
 using namespace allocator;
 
-BuddyAllocator B;
+BuddyAllocator k_allocator;
+Console k_console;
 
 extern "C" void main() {
-    for (auto i = 0; i < 50; ++i) {
-        Console::print(0);
-    }
-    // B.print_memory_map();
+    k_allocator.kmalloc(1 << 14);
+    k_allocator.print_memory_map();
+    k_allocator.kmalloc(1 << 13);
+    k_allocator.print_memory_map();
+    k_allocator.kmalloc(1 << 13);
+    k_allocator.print_memory_map();
 }

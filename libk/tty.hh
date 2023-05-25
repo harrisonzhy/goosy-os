@@ -6,13 +6,10 @@
 namespace console {
     class Console {
         public :
-            Console() {
-                current_row = 0;
-                current_column = 0;
-                console_page = (u16*)(0xB8000);
+            Console() : current_row(0), current_column(0), console_page((u16*)0xB8000) {
                 for (auto i = 0; i < VGA_HEIGHT; ++i) {
                     for (auto j = 0; j < VGA_WIDTH; ++j) {
-                        auto n = i * VGA_WIDTH + j;
+                        const auto n = i * VGA_WIDTH + j;
                         console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
                     }
                 }
@@ -30,51 +27,51 @@ namespace console {
                 ports::outb(CURSOR_CONTROL, existing);
             }
 
-            static void update_cursor(u16 trow, u16 tcolumn);
-            static void update_pos(i8 change);
-            static void scroll();
-            static void new_line();
-            static void write(const char* str);
-            static void put_char(const char c);
-            static auto num_digits(usize num, u8 base) -> u8;
+            void update_cursor(u16 trow, u16 tcolumn);
+            void update_pos(i8 change);
+            void scroll();
+            void new_line();
+            void write(const char* str);
+            void put_char(const char c);
+            auto num_digits(usize num, u8 base) -> u8;
 
-            // `print(* ...)' overloads
-            static void print();
+            // `print(...)' overloads
+            void print();
 
             template<typename T, typename ... Types>
-            static void print(T&& var1, Types&& ... var2) {
+            void print(T&& var1, Types&& ... var2) {
                 put(var1);
                 print(var2 ...);
             }
 
             template<usize S, typename ... Types>
-            static void print(const char (&var1)[S], Types&& ... var2) {
+            void print(const char (&var1)[S], Types&& ... var2) {
                 print(str(var1, S), var2 ...);
             }
 
             template<typename ... Types>
-            static void print_line(Types&& ... var2) {
+            void print_line(Types&& ... var2) {
                 print(var2 ...);
                 new_line();
                 update_cursor(current_row, current_column);
             }
 
-            // `put(*)' overloads
-            static void put(const str string);
-            static void put(u32 num);
-            static void put(const char c);
-            static void put(signed& num);
-            static void put(const u16 num);
-            static void put(const i16 num);
-            static void put(const u8 num);
-            static void put(const i8 num);
+            // `put(...)' overloads
+            void put(const str string);
+            void put(u32 num);
+            void put(const char c);
+            void put(signed& num);
+            void put(const u16 num);
+            void put(const i16 num);
+            void put(const u8 num);
+            void put(const i8 num);
 
         private :
-            static const isize VGA_WIDTH  = 80;
-            static const isize VGA_HEIGHT = 25;
-            static u16 current_row;
-            static u16 current_column;
-            static u16* console_page;
+            const isize VGA_WIDTH  = 80;
+            const isize VGA_HEIGHT = 25;
+            u16 current_row;
+            u16 current_column;
+            u16* console_page;
         
             const u16 CURSOR_START   = 0xA;
             const u16 CURSOR_END     = 0xB;

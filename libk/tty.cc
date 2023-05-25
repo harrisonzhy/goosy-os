@@ -22,13 +22,18 @@ namespace console {
         }
     }
 
+    void Console::new_line() {
+        ++current_row;
+        if (current_row >= VGA_HEIGHT) {
+            current_row = VGA_HEIGHT - 1;
+            scroll();
+        }
+        current_column = -1;
+    }
+
     void Console::put_char(const char c) {
         if (c == '\n') {
-            ++current_row;
-            if (current_row == VGA_HEIGHT) {
-                --current_row;
-                scroll();
-            }
+            new_line();
             return;
         }
         console_page[current_row * VGA_WIDTH + current_column] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
@@ -98,8 +103,4 @@ namespace console {
     void Console::put(const i16 num) { put(u32(num)); }
     void Console::put(const u8 num)  { put(u32(num)); }
     void Console::put(const i8 num)  { put(u32(num)); }
-
-    u16 Console::current_row;
-    u16 Console::current_column;
-    u16* Console::console_page;
 }
