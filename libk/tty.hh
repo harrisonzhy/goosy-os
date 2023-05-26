@@ -6,11 +6,11 @@
 namespace console {
     class Console {
         public :
-            Console() : current_row(0), current_column(0), console_page((u16*)0xB8000) {
+            Console() : _current_row(0), _current_column(0), _console_page((u16*)0xB8000) {
                 for (auto i = 0; i < VGA_HEIGHT; ++i) {
                     for (auto j = 0; j < VGA_WIDTH; ++j) {
                         auto const n = i * VGA_WIDTH + j;
-                        console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+                        _console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
                     }
                 }
                 ports::outb(CURSOR_OFFSET, CURSOR_START);
@@ -37,7 +37,7 @@ namespace console {
             }
 
             template<usize S, typename ... Types>
-            void print(const char (&var1)[S], Types&& ... var2) {
+            void print(char const (&var1)[S], Types&& ... var2) {
                 print(str(var1, S), var2 ...);
             }
 
@@ -45,15 +45,15 @@ namespace console {
             void print_line(Types&& ... var2) {
                 print(var2 ...);
                 new_line();
-                update_cursor(current_row, current_column);
+                update_cursor(_current_row, _current_column);
             }
 
             inline __attribute__((always_inline)) void update_cursor(u16 const row, u16 const column) {
                 u16 const pos = row * VGA_WIDTH + column;
                 ports::outb(0x3D4, 0xF);
-                ports::outb(0x3D5, (const u8)(pos & 0xFF));
+                ports::outb(0x3D5, (u8 const)(pos & 0xFF));
                 ports::outb(0x3D4, 0xE);
-                ports::outb(0x3D5, (const u8)((pos >> 8) & 0xFF));
+                ports::outb(0x3D5, (u8 const)((pos >> 8) & 0xFF));
             }
 
             // `put(...)' overloads
@@ -69,21 +69,20 @@ namespace console {
             void update_pos(i8 const change);
             void scroll();
             void new_line();
-            void write(char* const str);
             void put_char(char const c);
             auto num_digits(usize num, u8 base) -> u8;
 
         private :
-            const isize VGA_WIDTH  = 80;
-            const isize VGA_HEIGHT = 25;
-            u16 current_row;
-            u16 current_column;
-            u16* console_page;
+            u16 _current_row;
+            u16 _current_column;
+            u16* _console_page;
         
-            const u16 CURSOR_START   = 0xA;
-            const u16 CURSOR_END     = 0xB;
-            const u16 CURSOR_SHAPE   = 0x20;
-            const u16 CURSOR_CONTROL = 0x3D5;
-            const u16 CURSOR_OFFSET  = 0x3D4;
+            u16 static constexpr const VGA_WIDTH      = 80;
+            u16 static constexpr const VGA_HEIGHT     = 25;
+            u16 static constexpr const CURSOR_START   = 0xA;
+            u16 static constexpr const CURSOR_END     = 0xB;
+            u16 static constexpr const CURSOR_SHAPE   = 0x20;
+            u16 static constexpr const CURSOR_CONTROL = 0x3D5;
+            u16 static constexpr const CURSOR_OFFSET  = 0x3D4;
     };
 }

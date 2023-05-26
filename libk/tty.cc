@@ -5,54 +5,54 @@ namespace console {
     void Console::scroll() {
         for (auto i = 1; i < VGA_HEIGHT; ++i) {
             for (auto j = 0; j < VGA_WIDTH; ++j) {
-                console_page[(i - 1) * VGA_WIDTH + j] = console_page[i * VGA_WIDTH + j];
+                _console_page[(i - 1) * VGA_WIDTH + j] = _console_page[i * VGA_WIDTH + j];
             }
         }
         for (auto i = 0; i < VGA_WIDTH; ++i) {
             auto n = (VGA_HEIGHT - 1) * VGA_WIDTH + i;
-            console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+            _console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
         }
     }
 
     void Console::new_line() {
-        ++current_row;
-        if (current_row >= VGA_HEIGHT) {
-            current_row = VGA_HEIGHT - 1;
+        ++_current_row;
+        if (_current_row >= VGA_HEIGHT) {
+            _current_row = VGA_HEIGHT - 1;
             scroll();
         }
-        current_column = 0;
+        _current_column = 0;
     }
 
-    void Console::put_char(const char c) {
+    void Console::put_char(char const c) {
         if (c == '\n') {
             new_line();
-            --current_column;
+            --_current_column;
             return;
         }
-        auto const n = current_row * VGA_WIDTH + current_column;
-        console_page[n] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+        auto const n = _current_row * VGA_WIDTH + _current_column;
+        _console_page[n] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     }
 
     void Console::update_pos(i8 const delta) {
         if (delta > 0) {
-            current_column += delta % VGA_WIDTH;
-            current_row += delta / VGA_WIDTH;
-            if (current_column >= VGA_WIDTH) {
-                current_row += current_column / VGA_WIDTH;
-                current_column %= VGA_WIDTH;
+            _current_column += delta % VGA_WIDTH;
+            _current_row += delta / VGA_WIDTH;
+            if (_current_column >= VGA_WIDTH) {
+                _current_row += _current_column / VGA_WIDTH;
+                _current_column %= VGA_WIDTH;
             }
-            if (current_row >= VGA_HEIGHT) {
-                current_row = VGA_HEIGHT - 1;
+            if (_current_row >= VGA_HEIGHT) {
+                _current_row = VGA_HEIGHT - 1;
                 scroll();
             }
         }
         else if (delta == -1) {
-            if (current_column == 0) {
-                current_column = VGA_WIDTH - 1;
-                --current_row;
+            if (_current_column == 0) {
+                _current_column = VGA_WIDTH - 1;
+                --_current_row;
             }
             else {
-                --current_column;
+                --_current_column;
             }
         }
     }
@@ -88,7 +88,7 @@ namespace console {
     }
 
     void Console::print() {
-        update_cursor(current_row, current_column);
+        update_cursor(_current_row, _current_column);
     }
 
     void Console::put(char const c)  { put_char(c);   }

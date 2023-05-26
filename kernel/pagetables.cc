@@ -3,13 +3,13 @@
 
 using namespace pagetables;
 
-auto PageDirectory::map(const u32 va, const u32 pa, const u8 perm) -> signed {
+auto PageDirectory::map(u32 const va, u32 const pa, u8 const perm) -> signed {
     auto& pt = _entries[va_to_index(va)];
     return pt.map(va, pa, perm);
 }
 
-auto PageDirectory::try_map(const u32 va, const u32 pa, const u8 perm) -> signed {
-    const auto i = va_to_index(va);
+auto PageDirectory::try_map(u32 const va, u32 const pa, u8 const perm) -> signed {
+    auto const i = va_to_index(va);
     auto& pt = _entries[i];
     if (pt.get_entry_address() == 0) {
         
@@ -23,8 +23,8 @@ auto PageDirectory::try_map(const u32 va, const u32 pa, const u8 perm) -> signed
     return -1;
 }
 
-auto PageDirectory::va_to_pa(const uptr addr) const -> uptr {
-    const auto i = va_to_index(addr);
+auto PageDirectory::va_to_pa(uptr const addr) const -> uptr {
+    auto const i = va_to_index(addr);
     auto pt = _entries[i].get_entry_pagetable();
     if (pt.none()) {
         return uptr(-1);
@@ -32,8 +32,8 @@ auto PageDirectory::va_to_pa(const uptr addr) const -> uptr {
     return pt.unwrap().va_to_pa(addr);
 }
 
-auto PageDirectoryEntry::add_pagetable(const uptr pt_addr, const u8 perm) -> signed {
-    const auto entry_addr = get_entry_address();
+auto PageDirectoryEntry::add_pagetable(uptr const pt_addr, u8 const perm) -> signed {
+    auto const entry_addr = get_entry_address();
     if (entry_addr != 0) [[unlikely]] {
         return -1;
     }

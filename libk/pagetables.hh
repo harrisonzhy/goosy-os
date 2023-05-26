@@ -3,18 +3,18 @@
 #include "array.hh"
 #include "option.hh"
 
-static auto constexpr const PAGESIZE = 0x1000;
-static auto constexpr const PTE_P    = 0b001;
-static auto constexpr const PTE_W    = 0b010;
-static auto constexpr const PTE_U    = 0b100;
-static auto constexpr const PTE_PWU  = PTE_P | PTE_W | PTE_U;
-static auto constexpr const PTE_PW   = PTE_P | PTE_W;
-static auto constexpr const PTE_PU   = PTE_P | PTE_U;
+auto constexpr const PAGESIZE = 0x1000;
+auto constexpr const PTE_P    = 0b001;
+auto constexpr const PTE_W    = 0b010;
+auto constexpr const PTE_U    = 0b100;
+auto constexpr const PTE_PWU  = PTE_P | PTE_W | PTE_U;
+auto constexpr const PTE_PW   = PTE_P | PTE_W;
+auto constexpr const PTE_PU   = PTE_P | PTE_U;
 
 namespace pagetables {
     class PagetableEntry {
         public :
-            PagetableEntry(const PagetableEntry& _) = delete;
+            PagetableEntry(PagetableEntry const& _) = delete;
             PagetableEntry() : _data(0) {}
 
             // [P] return whether this PTE is present
@@ -58,7 +58,7 @@ namespace pagetables {
 
     class Pagetable {
         public :
-            Pagetable(const Pagetable& _) = delete;
+            Pagetable(Pagetable const& _) = delete;
             Pagetable() {}
 
             // get index of the PTE with virtual address `addr' (bits 21-12)
@@ -67,8 +67,8 @@ namespace pagetables {
             // get physical address of the PTE with virtual address `addr'
             auto constexpr va_to_pa(u32 addr) const -> uptr { return _entries[get_pagetable_index(addr)].get_entry_address(); }
 
-            constexpr PagetableEntry& operator [] (const usize i) { return _entries[i]; }
-            constexpr const PagetableEntry& operator [] (const usize i) const { return _entries[i]; }
+            constexpr PagetableEntry& operator [] (usize const i) { return _entries[i]; }
+            constexpr const PagetableEntry& operator [] (usize const i) const { return _entries[i]; }
 
         private :
             static usize constexpr const NUM_ENTRIES = 1024;
@@ -77,7 +77,7 @@ namespace pagetables {
 
     class PageDirectoryEntry {
         public :
-            PageDirectoryEntry(const PageDirectoryEntry& _) = delete;
+            PageDirectoryEntry(PageDirectoryEntry const& _) = delete;
             PageDirectoryEntry() : _data(0) {}
 
             // [P] return whether this PDE is present
@@ -96,27 +96,27 @@ namespace pagetables {
             [[nodiscard]] auto constexpr accessed()      const -> bool { return _data & 0b000100000; }
 
             // return the address of the pagetable pointed to by this PDE (upper 24 bits)
-            [[nodiscard]] auto constexpr get_entry_address() const -> uptr { return _data & 0x0FFFFFF00; }
+            [[nodiscard]] auto constexpr get_entry_address()   const -> uptr { return _data & 0x0FFFFFF00; }
 
             // return reference to the pagetable pointed to by this PDE
             [[nodiscard]] auto constexpr get_entry_pagetable() const -> Option<Pagetable&> {
-                const auto addr = get_entry_address();
+                auto const addr = get_entry_address();
                 if (!addr) {
                     return Option<Pagetable&>();
                 }
-                const auto pt_addr = reinterpret_cast<Pagetable*>(addr);
+                auto const pt_addr = reinterpret_cast<Pagetable*>(addr);
                 return Option<Pagetable&>(*pt_addr);
             }
 
             // map virtual address `va' to physical address `pa' with permissions `perm'
-            auto map(const u32 va, const u32 pa, const u8 perm) -> signed {
+            auto map(u32 const va, u32 const pa, u8 const perm) -> signed {
                 auto& pt = get_entry_pagetable().unwrap();
                 auto& entry_page = pt[pt.get_pagetable_index(va)];
                 return entry_page.map(pa, perm);
             }
             
             // try to map virtual address `va' to physical address `pa' with permissions `perm'
-            [[nodiscard]] auto try_map(const u32 va, const u32 pa, const u8 perm) -> signed {
+            [[nodiscard]] auto try_map(u32 const va, u32 const pa, u8 const perm) -> signed {
                 auto possible_pt = get_entry_pagetable();
                 if (possible_pt.none()) {
                     return -1;
@@ -126,7 +126,7 @@ namespace pagetables {
                 return entry_page.try_map(pa, perm);
             }
 
-            auto add_pagetable(const uptr pt_addr, const u8 perm) -> signed;
+            auto add_pagetable(uptr const pt_addr, u8 const perm) -> signed;
 
         private :
             u32 _data;
@@ -134,32 +134,32 @@ namespace pagetables {
 
     class PageDirectory {
         public :
-            PageDirectory(const PageDirectory& _) = delete;
+            PageDirectory(PageDirectory const& _) = delete;
             PageDirectory() {}
 
-            auto constexpr get_entry_directory(const usize i) -> PageDirectoryEntry& { return _entries[i]; }
-            auto constexpr get_entry_directory(const usize i) const -> const PageDirectoryEntry& { return _entries[i]; }
+            auto constexpr get_entry_directory(usize const i) -> PageDirectoryEntry& { return _entries[i]; }
+            auto constexpr get_entry_directory(usize const i) const -> PageDirectoryEntry const& { return _entries[i]; }
 
             // map virtual address `va' to physical address `pa' with permissions `perm'
-            auto map(const u32 va, const u32 pa, const u8 perm) -> signed;
+            auto map(u32 const va, u32 const pa, u8 const perm) -> signed;
 
             // try to map virtual address `va' to physical address `pa' with permissions `perm'
-            [[nodiscard]] auto try_map(const u32 va, const u32 pa, const u8 perm) -> signed;
+            [[nodiscard]] auto try_map(u32 const va, u32 const pa, u8 const perm) -> signed;
 
             // get index of the PDE with virtual address `addr' (bits 21-12)
-            [[nodiscard]] auto constexpr va_to_index(const uptr addr) const -> usize { return (addr & 0xFFC00000) >> 22; }
+            [[nodiscard]] auto constexpr va_to_index(uptr const addr) const -> usize { return (addr & 0xFFC00000) >> 22; }
 
             // get physical address of the PDE with virtual address `addr'
-            auto va_to_pa(const uptr addr) const -> uptr;
+            auto va_to_pa(uptr const addr) const -> uptr;
 
-            PageDirectoryEntry& operator [] (const usize i) { return _entries[i]; }
-            const PageDirectoryEntry& operator [] (const usize i) const { return _entries[i]; }
+            PageDirectoryEntry& operator [] (usize const i) { return _entries[i]; }
+            PageDirectoryEntry const& operator [] (usize const i) const { return _entries[i]; }
 
             // set `%cr3' to address of page directory
             void set_page_directory() const;
         
         private :
-            static auto constexpr const NUM_ENTRIES = 1024_usize;
+            auto static constexpr const NUM_ENTRIES = 1024_usize;
             Array<PageDirectoryEntry, NUM_ENTRIES> _entries;
     }__attribute__((aligned(PAGESIZE)));
 

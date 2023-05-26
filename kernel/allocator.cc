@@ -45,7 +45,7 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
     return uptr(-1);
 }
 
-auto BuddyAllocator::kfree(const uptr addr) -> signed {
+auto BuddyAllocator::kfree(uptr const addr) -> signed {
 
     return 0;
 }
@@ -55,14 +55,14 @@ void BuddyAllocator::coalesce(Block* block) {
 
 auto BuddyAllocator::kmalloc_next_block() -> Block* {
     // allocate `PAGE_SIZE' / sizeof(`Block') more blocks
-    const auto k = kmalloc(PAGE_SIZE);
+    auto const k = kmalloc(PAGE_SIZE);
     if (k > MAX_ADDRESS) [[unlikely]] {
         return nullptr;
     }
 
     // set all new_blocks created as allocatable
-    const auto new_blocks = reinterpret_cast<Block*>(k);
-    const auto num_blocks = PAGE_SIZE / sizeof(Block);
+    auto const new_blocks = reinterpret_cast<Block*>(k);
+    auto const num_blocks = PAGE_SIZE / sizeof(Block);
     for (usize i = 1; i < num_blocks; ++i) {
         new_blocks[i].set_allocatable(true);
         new_blocks[i].set_size(0);

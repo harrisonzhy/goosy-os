@@ -12,12 +12,12 @@ namespace allocator {
             Block(Block const& _) = delete;
             Block() : m_data(1 << 4), m_next(nullptr), m_prev(nullptr) {}
 
-            inline __attribute__((always_inline)) auto get_size() const -> const u8 { return m_data & 0xF; }
+            inline __attribute__((always_inline)) auto get_size() const -> u8 const { return m_data & 0xF; }
 
-            inline __attribute__((always_inline)) auto is_allocatable() const -> const bool { return m_data & 0x10; }
+            inline __attribute__((always_inline)) auto is_allocatable() const -> bool const { return m_data & 0x10; }
 
             // set size of corresponding allocation (bits 3-0)
-            void set_size(const u8 size) { m_data &= 0xF0; m_data |= size; }
+            void set_size(u8 const size) { m_data &= 0xF0; m_data |= size; }
 
             // set whether this block is allocatable (bit 4)
             void set_allocatable(bool allocatable) {
@@ -58,7 +58,7 @@ namespace allocator {
             void coalesce(Block* block);
 
             // get index into `m_metadata' array given virtual address `addr'
-            [[nodiscard]] auto va_to_index(const u32 addr) -> signed {
+            [[nodiscard]] auto va_to_index(u32 const addr) -> signed {
                 auto const valid = check_address(addr);
                 if (!valid) {
                     return -1;
@@ -66,7 +66,7 @@ namespace allocator {
                 return (addr - MIN_ADDRESS) / PAGE_SIZE - 1;
             }
 
-            [[nodiscard]] auto check_address(const u32 addr) -> bool {
+            [[nodiscard]] auto check_address(u32 const addr) -> bool {
                 auto const bounded = addr >= MIN_ADDRESS && addr <= MAX_ADDRESS;
                 auto const aligned = (addr & (PAGE_SIZE - 1)) == 0;
                 return bounded && aligned;
@@ -75,7 +75,7 @@ namespace allocator {
             // dynamically allocate more `Block()' objects if needed
             [[nodiscard]] auto kmalloc_next_block() -> Block*;
 
-            [[nodiscard]] inline __attribute__((always_inline)) auto log_two_ceil(const u32 num) -> u8 {
+            [[nodiscard]] inline __attribute__((always_inline)) auto log_two_ceil(u32 const num) -> u8 {
                 return sizeof(num) * 8 - __builtin_clz(num) - 1;
             }
 
@@ -90,7 +90,7 @@ namespace allocator {
                 k_console.print("ALLOCATED MEMORY\n");
                 auto i = 0;
                 auto iter_block = &_memory_blocks[0];
-                while (iter_block && i < 0x10) {
+                while (iter_block && i < 0x14) {
                     u8 const allocatable = iter_block->is_allocatable();
                     if (!allocatable) {
                         k_console.print("[", iter_block->get_size(), ",", allocatable, "]");
@@ -106,8 +106,8 @@ namespace allocator {
             Array<Partition, 0x14> _free_blocks;
             Block* current_block;
 
-            static u32 constexpr const MIN_ADDRESS = 0x200000;
-            static u32 constexpr const MAX_ADDRESS = 0xFFFFFFFF;
-            static u32 constexpr const PAGE_SIZE = 0x1000;
+            u32 static constexpr const MIN_ADDRESS = 0x200000;
+            u32 static constexpr const MAX_ADDRESS = 0xFFFFFFFF;
+            u32 static constexpr const PAGE_SIZE   = 0x1000;
     };
 }

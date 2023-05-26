@@ -5,26 +5,18 @@
 struct str {
     public :
         template<usize S>
-        constexpr str(char const (&string)[S]) : t_str(string), t_size(S - 1) {}
-        constexpr str(char const* string, usize size) : t_str(string), t_size(size - 1) {}
+        constexpr str(char const (&string)[S]) : _str(string), _size(S - 1) {}
+        constexpr str(char const* string, usize size) : _str(string), _size(size - 1) {}
 
-        auto constexpr len() const -> usize {
-            return t_size;
-        }
+        auto constexpr len() const -> usize { return _size; }
 
-        auto constexpr begin() const -> iterator<const char> {
-            return iterator<const char>(t_str);
-        }
+        auto constexpr begin() const -> iterator<char const> { return iterator<char const>(_str); }
 
-        auto constexpr end() const -> iterator<const char> {
-            return iterator<const char>(t_str + t_size);
-        }
+        auto constexpr end() const -> iterator<char const> { return iterator<char const>(_str + _size); }
 
-        auto constexpr operator[](const usize i) const -> const char& {
-            return t_str[i];
-        }
+        auto constexpr operator[](usize const i) const -> char const& { return _str[i]; }
 
     private:
-        const char* t_str;
-        usize t_size;
+        char const* _str;
+        usize const _size;
 };

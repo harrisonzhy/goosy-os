@@ -1,7 +1,3 @@
-#include "tty.hh"
-#include "array.hh"
-
-console::Console C;
 namespace console {
     inline __attribute__((always_inline)) void Console::update_cursor(u16 row, u16 column) {
         const u16 pos = row * VGA_WIDTH + column;
