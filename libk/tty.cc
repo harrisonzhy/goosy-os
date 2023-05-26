@@ -29,10 +29,11 @@ namespace console {
             --current_column;
             return;
         }
-        console_page[current_row * VGA_WIDTH + current_column] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+        auto const n = current_row * VGA_WIDTH + current_column;
+        console_page[n] = vga_entry(c, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     }
 
-    void Console::update_pos(i8 delta) {
+    void Console::update_pos(i8 const delta) {
         if (delta > 0) {
             current_column += delta % VGA_WIDTH;
             current_row += delta / VGA_WIDTH;
@@ -67,10 +68,10 @@ namespace console {
     }
 
     void Console::put(u32 num) {
-        const auto digits = num_digits(num, 10);
+        auto const digits = num_digits(num, 10);
         update_pos(digits);
         do {
-            const auto digit = static_cast<char>(num % 10 + '0');
+            auto const digit = static_cast<char>(num % 10 + '0');
             update_pos(-1);
             put_char(digit);
             num /= 10;
@@ -79,8 +80,8 @@ namespace console {
         update_pos(digits);
     }
 
-    void Console::put(const str string) {
-        for (const auto& c : string) {
+    void Console::put(str const string) {
+        for (auto const& c : string) {
             put_char(c);
             update_pos(1);
         }
@@ -90,10 +91,10 @@ namespace console {
         update_cursor(current_row, current_column);
     }
 
-    void Console::put(const char c)  { put_char(c);   }
-    void Console::put(signed& num)   { put(u32(num)); }
-    void Console::put(const u16 num) { put(u32(num)); }
-    void Console::put(const i16 num) { put(u32(num)); }
-    void Console::put(const u8 num)  { put(u32(num)); }
-    void Console::put(const i8 num)  { put(u32(num)); }
+    void Console::put(char const c)  { put_char(c);   }
+    void Console::put(signed const& num)   { put(u32(num)); }
+    void Console::put(u16 const num) { put(u32(num)); }
+    void Console::put(i16 const num) { put(u32(num)); }
+    void Console::put(u8 const num)  { put(u32(num)); }
+    void Console::put(i8 const num)  { put(u32(num)); }
 }

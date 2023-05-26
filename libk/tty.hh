@@ -9,7 +9,7 @@ namespace console {
             Console() : current_row(0), current_column(0), console_page((u16*)0xB8000) {
                 for (auto i = 0; i < VGA_HEIGHT; ++i) {
                     for (auto j = 0; j < VGA_WIDTH; ++j) {
-                        const auto n = i * VGA_WIDTH + j;
+                        auto const n = i * VGA_WIDTH + j;
                         console_page[n] = vga_entry(' ', VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
                     }
                 }
@@ -48,8 +48,8 @@ namespace console {
                 update_cursor(current_row, current_column);
             }
 
-            inline __attribute__((always_inline)) void update_cursor(u16 row, u16 column) {
-                const u16 pos = row * VGA_WIDTH + column;
+            inline __attribute__((always_inline)) void update_cursor(u16 const row, u16 const column) {
+                u16 const pos = row * VGA_WIDTH + column;
                 ports::outb(0x3D4, 0xF);
                 ports::outb(0x3D5, (const u8)(pos & 0xFF));
                 ports::outb(0x3D4, 0xE);
@@ -57,21 +57,20 @@ namespace console {
             }
 
             // `put(...)' overloads
-            void put(const str string);
+            void put(str const string);
             void put(u32 num);
-            void put(const char c);
-            void put(signed& num);
-            void put(const u16 num);
-            void put(const i16 num);
-            void put(const u8 num);
-            void put(const i8 num);
+            void put(char const c);
+            void put(signed const& num);
+            void put(u16 const num);
+            void put(i16 const num);
+            void put(u8 const num);
+            void put(i8 const num);
 
-            // void update_cursor(u16 row, u16 column);
-            void update_pos(i8 change);
+            void update_pos(i8 const change);
             void scroll();
             void new_line();
-            void write(const char* str);
-            void put_char(const char c);
+            void write(char* const str);
+            void put_char(char const c);
             auto num_digits(usize num, u8 base) -> u8;
 
         private :

@@ -4,16 +4,18 @@
 using namespace console;
 using namespace allocator;
 
-auto BuddyAllocator::kmalloc(const usize size) -> uptr {
+auto BuddyAllocator::kmalloc(usize const size) -> uptr {
     if (size >= (1 << 27) || size == 0) [[unlikely]] {
         return uptr(-1);
     }
 
-    const auto aligned_size = (size + PAGE_SIZE - 1) & -PAGE_SIZE;
-    for (usize i = aligned_size / PAGE_SIZE - 1; i < _free_blocks.len(); ++i) {
+    usize const aligned_size = (size + PAGE_SIZE - 1) & -PAGE_SIZE;
+    usize const aligned_size_log = log_two_ceil(aligned_size) - log_two_ceil(PAGE_SIZE);
+
+    for (usize i = aligned_size_log; i < _free_blocks.len(); ++i) {
         if (_free_blocks[i].m_allocatable) {
-            const auto s_i = i;
-            const auto alloc_addr = _free_blocks[s_i].m_address;
+            auto const s_i = i;
+            auto const alloc_addr = _free_blocks[s_i].m_address;
 
             usize curr_block_size = (1 << s_i) * PAGE_SIZE;
             for (; curr_block_size >= aligned_size; --i) {
@@ -22,16 +24,20 @@ auto BuddyAllocator::kmalloc(const usize size) -> uptr {
                 curr_block_size >>= 1;
             }
 
-            // allocate new block
-            current_block->set_size(log_two_ceil(aligned_size));
+            // allocate new block and augment `current_block'
+            current_block->set_size(aligned_size_log);
             current_block->set_allocatable(false);
-
-            // augment `current_block'
             current_block = current_block->m_next;
-            if (!current_block->m_next) {
-                // dynamically allocate blocks if needed
+
+            // dynamically allocate blocks if needed
+            if (!current_block->m_next && current_block->m_prev) {
                 current_block->m_next = kmalloc_next_block();
+                if (!current_block->m_next) {
+                    return uptr(-1);
+                }
+                current_block = current_block->m_next;
             }
+            
             _free_blocks[s_i].m_allocatable = false;
             return uptr(alloc_addr);
         }
@@ -65,7 +71,7 @@ auto BuddyAllocator::kmalloc_next_block() -> Block* {
     }
     new_blocks[0].set_allocatable(true);
     new_blocks[0].set_size(0);
-
-    new_blocks[0].m_prev = current_block->m_next;
-    return &new_blocks[0];
+    new_blocks[0].m_prev = current_block;
+    current_block->m_next = &new_blocks[0];
+    return current_block->m_next;
 }
