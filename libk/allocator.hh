@@ -10,24 +10,32 @@ namespace allocator {
     class Block {
         public :
             Block(Block const& _) = delete;
-            Block() : m_data(1 << 4), m_next(nullptr), m_prev(nullptr) {}
+            Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(1 << 4) {}
 
-            inline __attribute__((always_inline)) auto get_size() const -> u8 const { return m_data & 0xF; }
+            inline __attribute__((always_inline)) auto get_address() const -> u32 const { return _address; }
 
-            inline __attribute__((always_inline)) auto is_allocatable() const -> bool const { return m_data & 0x10; }
+            inline __attribute__((always_inline)) auto get_size() const -> u8 const { return _data & 0xF; }
+
+            inline __attribute__((always_inline)) auto allocatable() const -> bool const { return _data & 0x10; }
+
+            // set address of this block
+            void set_address(uptr const addr) { _address = addr; }
 
             // set size of corresponding allocation (bits 3-0)
-            void set_size(u8 const size) { m_data &= 0xF0; m_data |= size; }
+            void set_size(u8 const size) { _data &= 0xF0; _data |= size; }
 
             // set whether this block is allocatable (bit 4)
             void set_allocatable(bool allocatable) {
-                auto const upper = m_data & ~(1 << 4);
-                m_data = upper | (allocatable << 4);
+                auto const upper = _data & ~(1 << 4);
+                _data = upper | (allocatable << 4);
             }
 
-            u8 m_data;
             Block* m_next;
             Block* m_prev;
+
+        private :
+            u32 _address;
+            u8 _data;
     };
 
     class Partition {
@@ -53,20 +61,9 @@ namespace allocator {
 
             auto kmalloc(usize const size) -> uptr;
 
-            auto kfree(uptr const addr) -> signed;
+            void kfree(uptr const addr);
 
-            void coalesce(Block* block);
-
-            // get index into `m_metadata' array given virtual address `addr'
-            [[nodiscard]] auto va_to_index(u32 const addr) -> signed {
-                auto const valid = check_address(addr);
-                if (!valid) {
-                    return -1;
-                }
-                return (addr - MIN_ADDRESS) / PAGE_SIZE - 1;
-            }
-
-            [[nodiscard]] auto check_address(u32 const addr) -> bool {
+            [[nodiscard]] auto check_address(uptr const addr) -> bool {
                 auto const bounded = addr >= MIN_ADDRESS && addr <= MAX_ADDRESS;
                 auto const aligned = (addr & (PAGE_SIZE - 1)) == 0;
                 return bounded && aligned;
@@ -74,6 +71,9 @@ namespace allocator {
 
             // dynamically allocate more `Block()' objects if needed
             [[nodiscard]] auto kmalloc_next_block() -> Block*;
+
+            // coalesce contiguous free blocks at and below `_free_blocks[i]'
+            void coalesce(u8 const i);
 
             [[nodiscard]] inline __attribute__((always_inline)) auto log_two_ceil(u32 const num) -> u8 {
                 return sizeof(num) * 8 - __builtin_clz(num) - 1;
@@ -91,7 +91,7 @@ namespace allocator {
                 auto i = 0;
                 auto iter_block = &_memory_blocks[0];
                 while (iter_block && i < 0x14) {
-                    u8 const allocatable = iter_block->is_allocatable();
+                    u8 const allocatable = iter_block->allocatable();
                     if (!allocatable) {
                         k_console.print("[", iter_block->get_size(), ",", allocatable, "]");
                     }

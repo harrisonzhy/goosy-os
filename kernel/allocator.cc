@@ -25,6 +25,7 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
             }
 
             // allocate new block and augment `current_block'
+            current_block->set_address(alloc_addr);
             current_block->set_size(aligned_size_log);
             current_block->set_allocatable(false);
             current_block = current_block->m_next;
@@ -32,25 +33,70 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
             // dynamically allocate blocks if needed
             if (!current_block->m_next && current_block->m_prev) {
                 current_block->m_next = kmalloc_next_block();
-                if (!current_block->m_next) {
-                    return uptr(-1);
+                if (!current_block->m_next) [[unlikely]] {
+                    return uptr(0);
                 }
                 current_block = current_block->m_next;
             }
-            
+
             _free_blocks[s_i].m_allocatable = false;
             return uptr(alloc_addr);
         }
     }
-    return uptr(-1);
+    return uptr(0);
 }
 
-auto BuddyAllocator::kfree(uptr const addr) -> signed {
+void BuddyAllocator::kfree(uptr const addr) {
+    auto const valid = check_address(addr);
 
-    return 0;
+
+    auto iter_block = &_memory_blocks[0];
+    while (iter_block) {
+        auto const block_addr = iter_block->get_address();
+        if (block_addr == addr) {
+            auto const buddy_addr = ((block_addr - MIN_ADDRESS) ^ iter_block->get_size()) + MIN_ADDRESS;
+            auto iter_buddy = &_memory_blocks[0];
+
+            // try to find and coalesce buddy block
+            while (iter_buddy) {
+                if (iter_buddy->get_address() == buddy_addr) {
+                    // coalesce
+                    auto const s_i = iter_block->get_size() - log_two_ceil(PAGE_SIZE) + 1;
+                    _free_blocks[s_i].m_address = (block_addr < buddy_addr) ? block_addr : buddy_addr;
+                    coalesce(s_i);
+
+                    // free buddy
+                    iter_buddy->set_address(0);
+                    iter_buddy->set_size(0);
+                    iter_buddy->set_allocatable(true);
+                    
+                    // reinsert block into `_memory_blocks'
+                    auto next_block_buddy = current_block->m_next;
+                    iter_buddy->m_prev = current_block;
+                    current_block->m_next = iter_buddy;
+                    next_block_buddy->m_prev = iter_buddy;
+                    iter_buddy->m_next = next_block_buddy;
+                }
+                iter_buddy = iter_buddy->m_next;
+            }
+            // free block
+            iter_block->set_address(0);
+            iter_block->set_size(0);
+            iter_block->set_allocatable(true);
+            
+            // reinsert block into `_memory_blocks'
+            auto const next_block = current_block->m_next;
+            iter_block->m_prev = current_block;
+            current_block->m_next = iter_block;
+            next_block->m_prev = iter_block;
+            iter_block->m_next = next_block;
+        }
+        iter_block = iter_block->m_next;
+    }
 }
 
-void BuddyAllocator::coalesce(Block* block) {
+void BuddyAllocator::coalesce(u8 const i) {
+
 }
 
 auto BuddyAllocator::kmalloc_next_block() -> Block* {
