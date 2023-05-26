@@ -72,8 +72,8 @@ namespace allocator {
             // dynamically allocate more `Block()' objects if needed
             [[nodiscard]] auto kmalloc_next_block() -> Block*;
 
-            // coalesce contiguous free blocks at and below `_free_blocks[i]'
-            void coalesce(u8 const i);
+            // coalesce contiguous free blocks at and below `_free_blocks[`s_i']'
+            void kcoalesce(u8 const s_i);
 
             [[nodiscard]] inline __attribute__((always_inline)) auto log_two_ceil(u32 const num) -> u8 {
                 return sizeof(num) * 8 - __builtin_clz(num) - 1;

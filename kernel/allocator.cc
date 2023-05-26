@@ -47,8 +47,9 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
 }
 
 void BuddyAllocator::kfree(uptr const addr) {
-    auto const valid = check_address(addr);
-
+    if (!check_address(addr)) {
+        return;
+    }
 
     auto iter_block = &_memory_blocks[0];
     while (iter_block) {
@@ -59,11 +60,12 @@ void BuddyAllocator::kfree(uptr const addr) {
 
             // try to find and coalesce buddy block
             while (iter_buddy) {
+                // TODO: fix possibly wrong condition
                 if (iter_buddy->get_address() == buddy_addr) {
-                    // coalesce
-                    auto const s_i = iter_block->get_size() - log_two_ceil(PAGE_SIZE) + 1;
-                    _free_blocks[s_i].m_address = (block_addr < buddy_addr) ? block_addr : buddy_addr;
-                    coalesce(s_i);
+                    // coalesce down
+                    auto const s_i = iter_block->get_size() - log_two_ceil(PAGE_SIZE) + 0;
+                    _free_blocks[s_i].m_address = (block_addr < buddy_addr) ? block_addr : buddy_addr;                    
+                    kcoalesce(s_i);
 
                     // free buddy
                     iter_buddy->set_address(0);
@@ -71,7 +73,7 @@ void BuddyAllocator::kfree(uptr const addr) {
                     iter_buddy->set_allocatable(true);
                     
                     // reinsert block into `_memory_blocks'
-                    auto next_block_buddy = current_block->m_next;
+                    auto const next_block_buddy = current_block->m_next;
                     iter_buddy->m_prev = current_block;
                     current_block->m_next = iter_buddy;
                     next_block_buddy->m_prev = iter_buddy;
@@ -95,8 +97,17 @@ void BuddyAllocator::kfree(uptr const addr) {
     }
 }
 
-void BuddyAllocator::coalesce(u8 const i) {
-
+void BuddyAllocator::kcoalesce(u8 const s_i) {
+    for (usize i = s_i + 1; i < _free_blocks.len(); ++i) {
+        if (!_free_blocks[i].m_allocatable) {
+            _free_blocks[i].m_allocatable = true;
+            --i;
+            for (; i >= s_i; --i) {
+                _free_blocks[i].m_allocatable = false;
+            }
+            break;
+        }
+    }
 }
 
 auto BuddyAllocator::kmalloc_next_block() -> Block* {
