@@ -12,7 +12,7 @@ namespace allocator {
             Block(Block const& _) = delete;
             Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(1 << 4) {}
 
-            inline __attribute__((always_inline)) auto get_address() const -> u32 const { return _address; }
+            inline __attribute__((always_inline)) auto get_address() const -> uptr const { return _address; }
 
             inline __attribute__((always_inline)) auto get_size() const -> u8 const { return _data & 0xF; }
 
@@ -92,9 +92,9 @@ namespace allocator {
                 auto iter_block = &_memory_blocks[0];
                 while (iter_block && i < 0x14) {
                     u8 const allocatable = iter_block->allocatable();
-                    if (!allocatable) {
+                    // if (!allocatable) {
                         k_console.print("[", iter_block->get_size(), ",", allocatable, "]");
-                    }
+                    // }
                     iter_block = iter_block->m_next;
                     ++i;
                 }

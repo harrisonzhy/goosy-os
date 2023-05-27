@@ -27,6 +27,14 @@ namespace console {
                 ports::outb(CURSOR_CONTROL, existing);
             }
 
+            inline __attribute__((always_inline)) void update_cursor(u16 const row, u16 const column) {
+                u16 const pos = row * VGA_WIDTH + column;
+                ports::outb(0x3D4, 0xF);
+                ports::outb(0x3D5, (u8 const)(pos & 0xFF));
+                ports::outb(0x3D4, 0xE);
+                ports::outb(0x3D5, (u8 const)((pos >> 8) & 0xFF));
+            }
+
             // `print(...)' overloads
             void print();
 
@@ -46,14 +54,6 @@ namespace console {
                 print(var2 ...);
                 new_line();
                 update_cursor(_current_row, _current_column);
-            }
-
-            inline __attribute__((always_inline)) void update_cursor(u16 const row, u16 const column) {
-                u16 const pos = row * VGA_WIDTH + column;
-                ports::outb(0x3D4, 0xF);
-                ports::outb(0x3D5, (u8 const)(pos & 0xFF));
-                ports::outb(0x3D4, 0xE);
-                ports::outb(0x3D5, (u8 const)((pos >> 8) & 0xFF));
             }
 
             // `put(...)' overloads
