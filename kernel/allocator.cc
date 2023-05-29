@@ -6,14 +6,17 @@ using namespace allocator;
 
 auto BuddyAllocator::kmalloc(usize const size) -> uptr {
     if (size >= (1 << 27) || size == 0) [[unlikely]] {
-        return uptr(-1);
+        return uptr(0);
     }
 
     usize const aligned_size = (size + PAGE_SIZE - 1) & -PAGE_SIZE;
     usize const aligned_size_log = log_two_ceil(aligned_size) - log_two_ceil(PAGE_SIZE);
+    k_console.print("sz: ", aligned_size_log, "\n");
 
     for (usize i = aligned_size_log; i < _free_blocks.len(); ++i) {
         if (_free_blocks[i].m_allocatable) {
+                k_console.print(i, "\n");
+
             auto const s_i = i;
             auto const alloc_addr = _free_blocks[s_i].m_address;
 
@@ -46,82 +49,10 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
     return uptr(0);
 }
 
-void BuddyAllocator::kfree(uptr const addr) {
-    if (!check_address(addr)) {
-        return;
-    }
-
-    // find block in `_memory_blocks'
-    auto iter_block = &_memory_blocks[0];
-    while (iter_block) {
-        auto const block_addr = iter_block->get_address();
-        if (block_addr == addr) {
-            // get buddy address
-            usize const block_size = 1 << (iter_block->get_size() + log_two_ceil(PAGE_SIZE));
-            u32 const buddy_addr = ((block_addr - MIN_ADDRESS) ^ block_size) + MIN_ADDRESS;
-
-            // find buddy block, and coalesce if possible
-            auto iter_buddy = &_memory_blocks[0];
-            while (iter_buddy) {
-                if (iter_buddy->get_address() == buddy_addr && iter_buddy->allocatable()) {
-                    // coalesce down
-                    auto const s_i = iter_block->get_size();
-                    _free_blocks[s_i].m_address = (block_addr < buddy_addr) ? block_addr : buddy_addr;
-                    kcoalesce(s_i);
-
-                    // free block
-                    iter_block->set_address(0);
-                    iter_block->set_size(0);
-                    iter_block->set_allocatable(true);
-
-                    // reinsert block into `_memory_blocks'
-                    auto next_block = current_block->m_next;
-                    iter_block->m_prev = current_block;
-                    current_block->m_next = iter_block;
-                    next_block->m_prev = iter_block;
-                    iter_block->m_next = next_block;
-
-                    // free buddy
-                    iter_buddy->set_address(0);
-                    iter_buddy->set_size(0);
-                    iter_buddy->set_allocatable(true);
-
-                    // reinsert buddy into `_memory_blocks'
-                    auto next_block_buddy = current_block->m_next;
-                    iter_buddy->m_prev = current_block;
-                    current_block->m_next = iter_buddy;
-                    next_block_buddy->m_prev = iter_buddy;
-                    iter_buddy->m_next = next_block_buddy;
-                }
-                iter_buddy = iter_buddy->m_next;
-            }
-            // free block but do not coalesce
-            iter_block->set_allocatable(true);
-        }
-        iter_block = iter_block->m_next;
-    }
-}
-
-void BuddyAllocator::kcoalesce(u8 const s_i) {
-    auto const s_addr = _free_blocks[s_i].m_address;
-    for (usize i = s_i + 1; i < _free_blocks.len(); ++i) {
-        if (!_free_blocks[i].m_allocatable) {
-            _free_blocks[i].m_allocatable = true;
-            // modify address here
-            --i;
-            for (; i >= s_i; --i) {
-                _free_blocks[i].m_allocatable = false;
-            }
-            // modify address here
-            break;
-        }
-    }
-}
-
 auto BuddyAllocator::kmalloc_next_block() -> Block* {
     // allocate `PAGE_SIZE' / sizeof(`Block') more blocks
     auto const k = kmalloc(PAGE_SIZE);
-    if (k > MAX_ADDRESS) [[unlikely]] {
+    if (!k) [[unlikely]] {
         return nullptr;
     }
 
@@ -139,4 +70,78 @@ auto BuddyAllocator::kmalloc_next_block() -> Block* {
     new_blocks[0].m_prev = current_block;
     current_block->m_next = &new_blocks[0];
     return current_block->m_next;
+}
+
+void BuddyAllocator::kfree(uptr const addr) {
+    // find block in `_memory_blocks' with address `addr' and coalesce
+    auto iter_block = &_memory_blocks[0];
+    while (iter_block) {
+        if (iter_block->get_address() == addr) {
+            kcoalesce(iter_block);
+            break;
+        }
+        iter_block = iter_block->m_next;
+    }
+}
+
+void BuddyAllocator::kcoalesce(Block* block) {
+    auto const block_size = block->get_size();
+    auto const block_addr = block->get_address();
+    auto const buddy_addr = ((block_addr - MIN_ADDRESS) ^ block_size) + MIN_ADDRESS;
+
+    auto in_memory_blocks = false;
+    auto in_free_blocks = false;
+
+    // determine if buddy is in `_free_blocks' (not yet allocated and free)
+    //     or if it is in `_memory_blocks' (allocated but free)
+    usize i = 0;
+    for (; i < _free_blocks.len(); ++i) {
+        if (_free_blocks[i].m_address == buddy_addr && _free_blocks[i].m_allocatable) {
+            in_free_blocks = true;
+            break;
+        }
+    }
+    auto iter_buddy = &_memory_blocks[0];
+    while (iter_buddy->m_next) {
+        if (iter_buddy->get_address() == buddy_addr && iter_buddy->allocatable()) {
+            in_memory_blocks = true;
+            break;
+        }
+        iter_buddy = iter_buddy->m_next;
+    }
+    k_console.print("in free: ", (signed)in_free_blocks, "\n");
+    k_console.print("in mems: ", (signed)in_memory_blocks, "\n");
+
+    auto const s_i = i - 1;
+    if (in_free_blocks || in_memory_blocks) {
+        // coalesce block partitions in `_free_blocks'
+        usize j = s_i;
+        for (; _free_blocks[j].m_allocatable; ++j) {
+            _free_blocks[j].m_allocatable = false;
+        }
+        _free_blocks[j].m_allocatable = true;
+        auto const new_addr = (block_addr < buddy_addr) ? block_addr : buddy_addr;
+        _free_blocks[j].m_address = (new_addr < _free_blocks[j].m_address) ? new_addr : _free_blocks[j].m_address;
+
+        // insert `block' back into `_memory_blocks'
+        block->set_address(0);
+        block->set_size(0);
+        block->set_allocatable(true);
+
+        block->m_prev->m_next = block->m_next;
+        block->m_next->m_prev = block->m_prev;
+        current_block->m_next->m_prev = block;
+        block->m_next = current_block->m_next;
+        current_block->m_next = block;
+        block->m_prev = current_block;
+
+        // create new coalesced block and try to coalesce it
+        auto const buddy = iter_buddy;
+        if (in_memory_blocks) {
+            buddy->set_address(new_addr);
+            buddy->set_size(block_size << 1);
+            buddy->set_allocatable(true);
+            kcoalesce(buddy);
+        }
+    }
 }

@@ -4,6 +4,7 @@
 #include "tty.hh"
 
 using namespace console;
+
 extern Console k_console;
 
 namespace allocator {
@@ -73,7 +74,7 @@ namespace allocator {
             [[nodiscard]] auto kmalloc_next_block() -> Block*;
 
             // coalesce contiguous free blocks at and below `_free_blocks[`s_i']'
-            void kcoalesce(u8 const s_i);
+            void kcoalesce(Block* block);
 
             [[nodiscard]] inline __attribute__((always_inline)) auto log_two_ceil(u32 const num) -> u8 {
                 return sizeof(num) * 8 - __builtin_clz(num) - 1;
