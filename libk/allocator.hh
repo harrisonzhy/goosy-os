@@ -39,72 +39,64 @@ namespace allocator {
             u8 _data;
     };
 
-    class Partition {
-        public :
-            Partition(Partition const& _) = delete;
-            Partition() : m_address(0), m_allocatable(false) {}
-
-            u32 m_address;
-            bool m_allocatable;
-    };
-
     class BuddyAllocator {
         public :
             BuddyAllocator(BuddyAllocator const& _) = delete;
-            BuddyAllocator() : current_block(&_memory_blocks[0]) {
+            BuddyAllocator() {
                 for (usize i = 1; i < _memory_blocks.len(); ++i) {
                     _memory_blocks[i].m_prev = &_memory_blocks[i - 1];
                     _memory_blocks[i - 1].m_next = &_memory_blocks[i];
                 }
-                _free_blocks[_free_blocks.len() - 1].m_address = MIN_ADDRESS;
-                _free_blocks[_free_blocks.len() - 1].m_allocatable = true;
+                for (usize i = 0; i < _free_blocks.len(); ++i) {
+                    _free_blocks[i].set_allocatable(false);
+                }
+                
+                // create starting block of max size
+                usize const l = _free_blocks.len() - 1;
+                _memory_blocks[0].m_prev = &_free_blocks[l];
+                _free_blocks[l].m_next = &_memory_blocks[0];
+                _free_blocks[l].m_next->set_allocatable(true);
+
+                current_block = &_memory_blocks[1];
             }
 
             auto kmalloc(usize const size) -> uptr;
 
             void kfree(uptr const addr);
 
-            [[nodiscard]] auto check_address(uptr const addr) -> bool {
-                auto const bounded = addr >= MIN_ADDRESS && addr <= MAX_ADDRESS;
-                auto const aligned = (addr & (PAGE_SIZE - 1)) == 0;
-                return bounded && aligned;
-            }
+            auto kmalloc_next_block() -> Block*;
 
-            // dynamically allocate more `Block()' objects if needed
-            [[nodiscard]] auto kmalloc_next_block() -> Block*;
+            auto find_min_free(u8 const i) -> Block*;
 
-            // coalesce contiguous free blocks at and below `_free_blocks[`s_i']'
-            void kcoalesce(Block* block);
-
-            [[nodiscard]] inline __attribute__((always_inline)) auto log_two_ceil(u32 const num) -> u8 {
-                return sizeof(num) * 8 - __builtin_clz(num) - 1;
-            }
+            void append_block(Block* block);
 
             void print_memory_map() {
                 k_console.print("FREE MEMORY\n");
                 for (usize i = 0; i < _free_blocks.len(); ++i) {
-                    u8 const allocatable = _free_blocks[i].m_allocatable;
-                    k_console.print("[", _free_blocks[i].m_address, ",", allocatable, "]");
+                    k_console.print("i=", i, " ");
+                    auto iter_block = _free_blocks[i].m_next;
+                    while (iter_block) {
+                        k_console.print("[", iter_block->get_size(), ",", iter_block->allocatable(), "]");
+                        iter_block = iter_block->m_next;
+                    }
+                    k_console.print("\n");
                 }
-                k_console.print("\n\n");
 
-                k_console.print("ALLOCATED MEMORY\n");
-                auto i = 0;
-                auto iter_block = &_memory_blocks[0];
-                while (iter_block && i < 0x14) {
-                    u8 const allocatable = iter_block->allocatable();
-                    // if (!allocatable) {
-                        k_console.print("[", iter_block->get_size(), ",", allocatable, "]");
-                    // }
+                k_console.print("USED MEMORY\n");
+                auto iter_block = current_block;
+                while (iter_block) {
+                    k_console.print("[", iter_block->get_size(), ",", iter_block->allocatable(), "]");
                     iter_block = iter_block->m_next;
-                    ++i;
                 }
-                k_console.print("\n\n");
+            }
+
+            [[nodiscard]] auto msb(u32 const num) -> u8 {
+                return sizeof(num) * 8 - __builtin_clz(num) - 1;
             }
 
         private :
             Array<Block, 0x32> _memory_blocks;
-            Array<Partition, 0x14> _free_blocks;
+            Array<Block, 0x15> _free_blocks;
             Block* current_block;
 
             u32 static constexpr const MIN_ADDRESS = 0x200000;

@@ -15,18 +15,16 @@ namespace console {
     }
 
     void Console::new_line() {
-        ++_current_row;
+        _current_column = VGA_WIDTH - 1;
         if (_current_row >= VGA_HEIGHT) {
             _current_row = VGA_HEIGHT - 1;
             scroll();
         }
-        _current_column = 0;
     }
 
     void Console::put_char(char const c) {
         if (c == '\n') {
             new_line();
-            --_current_column;
             return;
         }
         auto const n = _current_row * VGA_WIDTH + _current_column;
@@ -35,12 +33,8 @@ namespace console {
 
     void Console::update_pos(i8 const delta) {
         if (delta > 0) {
-            _current_column += delta % VGA_WIDTH;
-            _current_row += delta / VGA_WIDTH;
-            if (_current_column >= VGA_WIDTH) {
-                _current_row += _current_column / VGA_WIDTH;
-                _current_column %= VGA_WIDTH;
-            }
+            _current_row += (_current_column + delta) / VGA_WIDTH;
+            _current_column = (_current_column + delta) % VGA_WIDTH;
             if (_current_row >= VGA_HEIGHT) {
                 _current_row = VGA_HEIGHT - 1;
                 scroll();
@@ -49,12 +43,15 @@ namespace console {
         else if (delta == -1) {
             if (_current_column == 0) {
                 _current_column = VGA_WIDTH - 1;
-                --_current_row;
+                if (_current_row > 0) {
+                    --_current_row;
+                }
             }
             else {
                 --_current_column;
             }
         }
+        
     }
 
     auto Console::num_digits(usize num, u8 base) -> u8 {

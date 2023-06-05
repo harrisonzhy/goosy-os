@@ -6,7 +6,7 @@
 namespace console {
     class Console {
         public :
-            Console() : _current_row(0), _current_column(0), _console_page((u16*)0xB8000) {
+            Console() : _current_row(0), _current_column(0), _console_page(reinterpret_cast<u16*>(0xB8000)) {
                 for (auto i = 0; i < VGA_HEIGHT; ++i) {
                     for (auto j = 0; j < VGA_WIDTH; ++j) {
                         auto const n = i * VGA_WIDTH + j;
