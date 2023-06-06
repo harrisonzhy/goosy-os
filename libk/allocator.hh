@@ -47,17 +47,17 @@ namespace allocator {
                     _memory_blocks[i].m_prev = &_memory_blocks[i - 1];
                     _memory_blocks[i - 1].m_next = &_memory_blocks[i];
                 }
-                for (usize i = 0; i < _free_blocks.len(); ++i) {
-                    _free_blocks[i].set_allocatable(false);
+                for (usize i = 0; i < _allocated_blocks.len(); ++i) {
+                    _allocated_blocks[i].set_allocatable(false);
                 }
-                _allocated_blocks.set_size(-1);
-                _allocated_blocks.set_allocatable(false);
 
-                // create starting block of max size
-                usize const l = _free_blocks.len() - 1;
-                _memory_blocks[0].m_prev = &_free_blocks[l];
-                _free_blocks[l].m_next = &_memory_blocks[0];
-                _free_blocks[l].m_next->set_allocatable(true);
+                // create starting block of maximum size and minimum address
+                usize const l = _allocated_blocks.len() - 1;
+                _memory_blocks[0].m_prev = &_allocated_blocks[l];
+                _memory_blocks[0].m_next = nullptr;
+                _allocated_blocks[l].m_next = &_memory_blocks[0];
+                _allocated_blocks[l].m_next->set_address(MIN_ADDRESS);
+                _allocated_blocks[l].m_next->set_allocatable(true);
 
                 current_block = &_memory_blocks[1];
             }
@@ -68,27 +68,22 @@ namespace allocator {
 
             auto kmalloc_next_block() -> Block*;
 
-            auto find_min_free(u8 const i) -> Block*;
+            void coalesce(uptr const addr, u8 const idx);
 
-            void append_block(Block* block);
+            auto find_min_free(u8 const idx) -> Block*;
+
+            void append_block(Block* block, Block* list);
 
             void print_memory_map() {
-                k_console.print("FREE MEMORY\n");
-                for (usize i = 0; i < _free_blocks.len(); ++i) {
+                k_console.print("MEMORY MAP\n");
+                for (usize i = 0; i < _allocated_blocks.len(); ++i) {
                     k_console.print("i=", i, " ");
-                    auto iter_block = _free_blocks[i].m_next;
-                    while (iter_block) {
-                        k_console.print("[", iter_block->get_size(), ",", iter_block->allocatable(), "]");
-                        iter_block = iter_block->m_next;
+                    auto iter = _allocated_blocks[i].m_next;
+                    while (iter) {
+                        k_console.print("[", iter->get_size(), ",", iter->allocatable(), "]");
+                        iter = iter->m_next;
                     }
                     k_console.print("\n");
-                }
-
-                k_console.print("USED MEMORY\n");
-                auto iter_block = &_allocated_blocks;
-                while (iter_block) {
-                    k_console.print("[", iter_block->get_size(), ",", iter_block->allocatable(), "]");
-                    iter_block = iter_block->m_next;
                 }
             }
 
@@ -97,9 +92,8 @@ namespace allocator {
             }
 
         private :
-            Array<Block, 0x16> _memory_blocks;
-            Array<Block, 0x15> _free_blocks;
-            Block _allocated_blocks;
+            Array<Block, 0x32> _memory_blocks;
+            Array<Block, 0x15> _allocated_blocks;
             Block* current_block;
 
             u32 static constexpr const MIN_ADDRESS = 0x200000;

@@ -12,8 +12,20 @@ extern "C" void main() {
     auto a2 = k_allocator.kmalloc(8192);
     auto a3 = k_allocator.kmalloc(8192);
     auto a4 = k_allocator.kmalloc(4096);
-    // k_allocator.kmalloc(8192);
-    
-    // k_console.print(a1, " ", a2, " ", a3, " ", a4);
+    auto a5 = k_allocator.kmalloc(1 << 27);
+    auto a6 = k_allocator.kmalloc(1 << 27);
+    auto a7 = k_allocator.kmalloc(1 << 27);
+    auto a8 = k_allocator.kmalloc(1 << 12);
+    auto a9 = k_allocator.kmalloc(1 << 12);
+    auto a10 = k_allocator.kmalloc(1 << 27);
+    auto a11 = k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
+    k_allocator.kmalloc(1 << 27);
     k_allocator.print_memory_map();
 }
