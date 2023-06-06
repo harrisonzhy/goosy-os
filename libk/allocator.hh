@@ -50,7 +50,9 @@ namespace allocator {
                 for (usize i = 0; i < _free_blocks.len(); ++i) {
                     _free_blocks[i].set_allocatable(false);
                 }
-                
+                _allocated_blocks.set_size(-1);
+                _allocated_blocks.set_allocatable(false);
+
                 // create starting block of max size
                 usize const l = _free_blocks.len() - 1;
                 _memory_blocks[0].m_prev = &_free_blocks[l];
@@ -83,7 +85,7 @@ namespace allocator {
                 }
 
                 k_console.print("USED MEMORY\n");
-                auto iter_block = current_block;
+                auto iter_block = &_allocated_blocks;
                 while (iter_block) {
                     k_console.print("[", iter_block->get_size(), ",", iter_block->allocatable(), "]");
                     iter_block = iter_block->m_next;
@@ -95,8 +97,9 @@ namespace allocator {
             }
 
         private :
-            Array<Block, 0x32> _memory_blocks;
+            Array<Block, 0x16> _memory_blocks;
             Array<Block, 0x15> _free_blocks;
+            Block _allocated_blocks;
             Block* current_block;
 
             u32 static constexpr const MIN_ADDRESS = 0x200000;

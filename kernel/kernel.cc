@@ -14,6 +14,6 @@ extern "C" void main() {
     auto a4 = k_allocator.kmalloc(4096);
     // k_allocator.kmalloc(8192);
     
-    k_console.print(a1, " ", a2, " ", a3, " ", a4);
-    // k_allocator.print_memory_map();
+    // k_console.print(a1, " ", a2, " ", a3, " ", a4);
+    k_allocator.print_memory_map();
 }
