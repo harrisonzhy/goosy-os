@@ -51,14 +51,11 @@ namespace allocator {
                     _allocated_blocks[i].set_allocatable(false);
                 }
 
-                // create starting block of maximum size and minimum address
+                // create starting block of maximum size
                 usize const l = _allocated_blocks.len() - 1;
                 _memory_blocks[0].m_prev = &_allocated_blocks[l];
                 _memory_blocks[0].m_next = nullptr;
                 _allocated_blocks[l].m_next = &_memory_blocks[0];
-                _allocated_blocks[l].m_next->set_address(MIN_ADDRESS);
-                _allocated_blocks[l].m_next->set_allocatable(true);
-
                 current_block = &_memory_blocks[1];
             }
 
@@ -77,8 +74,8 @@ namespace allocator {
             void print_memory_map() {
                 k_console.print("MEMORY MAP\n");
                 for (usize i = 0; i < _allocated_blocks.len(); ++i) {
-                    // k_console.print("i=", i, " ");
                     auto iter = _allocated_blocks[i].m_next;
+                    // k_console.print("i=", i, " ");
                     while (iter) {
                         k_console.print("[", iter->get_size(), ",", iter->allocatable(), "]");
                         iter = iter->m_next;

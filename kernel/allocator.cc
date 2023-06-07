@@ -17,6 +17,11 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
         auto const block = find_min_free(i);
         if (block) {
             uptr const block_addr = block->get_address();
+            u32 tmp_res;
+            if (__builtin_add_overflow(block_addr, MIN_ADDRESS, &tmp_res)) {
+                return 0;
+            }
+            
             for (usize j = size_msb; j < i; ++j) {
                 // dynamically allocate memory blocks as needed
                 auto new_block = current_block;
@@ -30,9 +35,9 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
 
                 // check for overflow, set address of `new_block',
                 //      and append it to `allocated_blocks[j]'
-                u32 tmp;
+                u32 tmp_addr;
                 u32 const size = 1 << (j + PAGE_SIZE_msb);
-                if (__builtin_add_overflow(block_addr, size, &tmp)) {
+                if (__builtin_add_overflow(block_addr, size, &tmp_addr)) {
                     return 0;
                 }
                 new_block->set_address(block_addr + size);
@@ -53,7 +58,7 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
             block->set_size(size_msb);
             append_block(block, &_allocated_blocks[size_msb]);
 
-            return block_addr;
+            return block_addr + MIN_ADDRESS;
         }
     }
     return 0;
@@ -61,18 +66,20 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
 
 void BuddyAllocator::kfree(uptr const addr) {
     u8 const PAGE_SIZE_msb = msb(PAGE_SIZE);
+    uptr const real_addr = addr - MIN_ADDRESS;
 
     // search `_allocated_blocks' for block with address `addr'
     for (usize i = 0; i < _allocated_blocks.len(); ++i) {
         auto iter_bl = _allocated_blocks[i].m_next;
         while (iter_bl) {
             auto const block_addr = iter_bl->get_address();
-            if (block_addr == addr && !iter_bl->allocatable()) {
-                auto const size = 1 << (iter_bl->get_size() + PAGE_SIZE_msb);
+            if (block_addr == real_addr && !iter_bl->allocatable()) {
+                usize const size = 1 << (iter_bl->get_size() + PAGE_SIZE_msb);
+                
                 iter_bl->set_allocatable(true);
 
                 // search for free buddy in `_allocated_blocks[i]' with address `buddy_addr'
-                auto const buddy_addr = ((block_addr - MIN_ADDRESS) ^ size) + MIN_ADDRESS;
+                auto const buddy_addr = block_addr ^ size;
                 auto iter_bd = _allocated_blocks[i].m_next;
                 while (iter_bd) {
                     if (iter_bd->get_address() == buddy_addr && iter_bd->allocatable()) {
@@ -86,17 +93,11 @@ void BuddyAllocator::kfree(uptr const addr) {
 
                         // coalesce up and append `iter_bd' at `_allocated_blocks[res_idx]'
                         auto const res_idx = coalesce(block_addr, i);
-                        k_console.print(res_idx);
-                        
-                        auto const new_size = 1 << (res_idx + PAGE_SIZE_msb);
                         auto min_addr = (block_addr < buddy_addr) ? block_addr : buddy_addr;
-                        auto const min_buddy_addr = ((min_addr - MIN_ADDRESS) ^ new_size) + MIN_ADDRESS;
-                        min_addr = (min_addr < min_buddy_addr) ? min_addr : min_buddy_addr;
-
                         iter_bd->set_address(min_addr);
                         iter_bd->set_allocatable(true);
                         append_block(iter_bd, &_allocated_blocks[res_idx]);
-
+                        
                         return;
                     }
                     iter_bd = iter_bd->m_next;
@@ -111,9 +112,11 @@ auto BuddyAllocator::coalesce(uptr const addr, u8 const idx) -> u8 {
     auto const PAGE_SIZE_msb = msb(PAGE_SIZE);
 
     // coalesce up
+    uptr next_addr = addr;
     for (usize i = idx; i < _allocated_blocks.len(); ++i) {
         usize const size = 1 << (i + PAGE_SIZE_msb);
-        auto const buddy_addr = ((addr - MIN_ADDRESS) ^ size) + MIN_ADDRESS;
+        uptr const buddy_addr = next_addr ^ size;
+        next_addr = (next_addr < buddy_addr) ? next_addr : buddy_addr;
 
         // find buddy to coalesce in `_allocated_blocks[i]'
         auto iter = &_allocated_blocks[i];
@@ -128,7 +131,6 @@ auto BuddyAllocator::coalesce(uptr const addr, u8 const idx) -> u8 {
                 iter->set_address(0);
                 iter->set_allocatable(true);
                 iter->set_size(0);
-                append_block(iter, current_block);
                 break;
             }
             iter = iter->m_next;
