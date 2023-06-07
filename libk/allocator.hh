@@ -68,7 +68,7 @@ namespace allocator {
 
             auto kmalloc_next_block() -> Block*;
 
-            void coalesce(uptr const addr, u8 const idx);
+            auto coalesce(uptr const addr, u8 const idx) -> u8;
 
             auto find_min_free(u8 const idx) -> Block*;
 
@@ -77,7 +77,7 @@ namespace allocator {
             void print_memory_map() {
                 k_console.print("MEMORY MAP\n");
                 for (usize i = 0; i < _allocated_blocks.len(); ++i) {
-                    k_console.print("i=", i, " ");
+                    // k_console.print("i=", i, " ");
                     auto iter = _allocated_blocks[i].m_next;
                     while (iter) {
                         k_console.print("[", iter->get_size(), ",", iter->allocatable(), "]");

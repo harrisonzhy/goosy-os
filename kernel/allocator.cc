@@ -60,33 +60,85 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
 }
 
 void BuddyAllocator::kfree(uptr const addr) {
-    // auto const buddy_addr = ((block_addr - MIN_ADDRESS) ^ iter_block->get_size()) + MIN_ADDRESS;
-    auto iter = &_memory_blocks[0];
-    while (iter) {
-        auto const iter_addr = iter->get_address();
-        if (iter_addr == addr) {
-            auto const size_msb = iter->get_size();
+    u8 const PAGE_SIZE_msb = msb(PAGE_SIZE);
 
-            // remove block from `_allocated_memory'
-            iter->m_prev->m_next = iter->m_next;
-            iter->m_next->m_prev = iter->m_prev;
+    // search `_allocated_blocks' for block with address `addr'
+    for (usize i = 0; i < _allocated_blocks.len(); ++i) {
+        auto iter_bl = _allocated_blocks[i].m_next;
+        while (iter_bl) {
+            auto const block_addr = iter_bl->get_address();
+            if (block_addr == addr && !iter_bl->allocatable()) {
+                auto const size = 1 << (iter_bl->get_size() + PAGE_SIZE_msb);
+                iter_bl->set_allocatable(true);
 
-            auto const buddy_addr = ((addr - MIN_ADDRESS) ^ iter->get_size()) + MIN_ADDRESS;
-            auto iter_buddy = &_allocated_blocks[size_msb];
-            while (iter_buddy) {
-                if (iter_buddy->get_address() == addr) {
-                    auto const min_addr = (iter_addr < buddy_addr) ? iter_addr : buddy_addr;
+                // search for free buddy in `_allocated_blocks[i]' with address `buddy_addr'
+                auto const buddy_addr = ((block_addr - MIN_ADDRESS) ^ size) + MIN_ADDRESS;
+                auto iter_bd = _allocated_blocks[i].m_next;
+                while (iter_bd) {
+                    if (iter_bd->get_address() == buddy_addr && iter_bd->allocatable()) {
+                        // remove block from `_allocated_blocks[i]' 
+                        //      and append to list rooted at `current_block for reuse
+                        iter_bl->m_prev->m_next = iter_bl->m_next;
+                        if (iter_bl->m_next) {
+                            iter_bl->m_next->m_prev = iter_bl->m_prev;
+                        }
+                        append_block(iter_bl, current_block);
 
+                        // coalesce up and append `iter_bd' at `_allocated_blocks[res_idx]'
+                        auto const res_idx = coalesce(block_addr, i);
+                        k_console.print(res_idx);
+                        
+                        auto const new_size = 1 << (res_idx + PAGE_SIZE_msb);
+                        auto min_addr = (block_addr < buddy_addr) ? block_addr : buddy_addr;
+                        auto const min_buddy_addr = ((min_addr - MIN_ADDRESS) ^ new_size) + MIN_ADDRESS;
+                        min_addr = (min_addr < min_buddy_addr) ? min_addr : min_buddy_addr;
+
+                        iter_bd->set_address(min_addr);
+                        iter_bd->set_allocatable(true);
+                        append_block(iter_bd, &_allocated_blocks[res_idx]);
+
+                        return;
+                    }
+                    iter_bd = iter_bd->m_next;
                 }
             }
-            return;
+            iter_bl = iter_bl->m_next;
         }
-        iter = iter->m_next;
     }
 }
 
-void BuddyAllocator::coalesce(uptr const addr, u8 const idx) {
+auto BuddyAllocator::coalesce(uptr const addr, u8 const idx) -> u8 {
+    auto const PAGE_SIZE_msb = msb(PAGE_SIZE);
 
+    // coalesce up
+    for (usize i = idx; i < _allocated_blocks.len(); ++i) {
+        usize const size = 1 << (i + PAGE_SIZE_msb);
+        auto const buddy_addr = ((addr - MIN_ADDRESS) ^ size) + MIN_ADDRESS;
+
+        // find buddy to coalesce in `_allocated_blocks[i]'
+        auto iter = &_allocated_blocks[i];
+        while (iter) {
+            if (iter->get_address() == buddy_addr && iter->allocatable()) {
+                // remove buddy from `_allocated_blocks[i]' 
+                //      and append to list rooted at `current_block' for reuse
+                iter->m_prev->m_next = iter->m_next;
+                if (iter->m_next) {
+                    iter->m_next->m_prev = iter->m_prev;
+                }
+                iter->set_address(0);
+                iter->set_allocatable(true);
+                iter->set_size(0);
+                append_block(iter, current_block);
+                break;
+            }
+            iter = iter->m_next;
+        }
+        // cannot find (free) buddy to coalesce
+        if (!iter) {
+            return i;
+        }
+    }
+    return _allocated_blocks.len() - 1;
 }
 
 auto BuddyAllocator::kmalloc_next_block() -> Block* {
@@ -126,8 +178,8 @@ auto BuddyAllocator::find_min_free(u8 const idx) -> Block* {
     return min_block;
 }
 
-void BuddyAllocator::append_block(Block* block, Block* list) {
-    auto iter = list;
+void BuddyAllocator::append_block(Block* block, Block* root) {
+    auto iter = root;
     while (iter->m_next) {
         iter = iter->m_next;
     }
