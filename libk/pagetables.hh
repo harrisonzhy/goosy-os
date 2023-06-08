@@ -81,19 +81,19 @@ namespace pagetables {
             PageDirectoryEntry() : _data(0) {}
 
             // [P] return whether this PDE is present
-            [[nodiscard]] auto constexpr present()       const -> bool { return _data & 0b000000001; }
+            [[nodiscard]] auto constexpr present()       const -> bool { return _data & 0b1; }
             // [R/W] return whether this PDE is writable
-            [[nodiscard]] auto constexpr writable()      const -> bool { return _data & 0b000000010; }
+            [[nodiscard]] auto constexpr writable()      const -> bool { return _data & 0b10; }
             // [U/S] return whether this PDE is user-accessible
-            [[nodiscard]] auto constexpr user()          const -> bool { return _data & 0b000000100; }
+            [[nodiscard]] auto constexpr user()          const -> bool { return _data & 0b100; }
             
             // [PWT] return whether write-through caching or write-back is enabled
-            [[nodiscard]] auto constexpr write_through() const -> bool { return _data & 0b000001000; }
+            [[nodiscard]] auto constexpr write_through() const -> bool { return _data & 0b1000; }
             // [PCD] return whether this pagetable will be cached
-            [[nodiscard]] auto constexpr cache_disable() const -> bool { return _data & 0b000010000; }
+            [[nodiscard]] auto constexpr cache_disable() const -> bool { return _data & 0b10000; }
             
             // [A] return whether this PDE was read during virtual address translation
-            [[nodiscard]] auto constexpr accessed()      const -> bool { return _data & 0b000100000; }
+            [[nodiscard]] auto constexpr accessed()      const -> bool { return _data & 0b100000; }
 
             // return the address of the pagetable pointed to by this PDE (upper 24 bits)
             [[nodiscard]] auto constexpr get_entry_address()   const -> uptr { return _data & 0x0FFFFFF00; }

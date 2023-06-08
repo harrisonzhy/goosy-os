@@ -23,7 +23,6 @@ extern "C" void main() {
     k_allocator.kfree(a3);
     k_allocator.kfree(a5);
     
-
     // k_console.print(a1, " ", a2, " ", a3, " ", a4, "\n");
     k_allocator.print_memory_map();
 }

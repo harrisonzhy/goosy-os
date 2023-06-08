@@ -1,7 +1,11 @@
 #include "../libk/pagetables.hh"
+#include "../libk/allocator.hh"
 #include "../libk/int.hh"
 
 using namespace pagetables;
+using namespace allocator;
+
+extern BuddyAllocator k_allocator;
 
 auto PageDirectory::map(u32 const va, u32 const pa, u8 const perm) -> signed {
     auto& pt = _entries[va_to_index(va)];
@@ -12,6 +16,10 @@ auto PageDirectory::try_map(u32 const va, u32 const pa, u8 const perm) -> signed
     auto const i = va_to_index(va);
     auto& pt = _entries[i];
     if (pt.get_entry_address() == 0) {
+        auto const k = k_allocator.kmalloc(PAGESIZE);
+        if (!k) {
+            return -1;
+        }
         
         // TODO: buddy allocation
         // 1. kalloc a page

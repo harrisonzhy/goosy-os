@@ -13,11 +13,11 @@ namespace allocator {
             Block(Block const& _) = delete;
             Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(1 << 4) {}
 
-            inline __attribute__((always_inline)) auto get_address() const -> uptr const { return _address; }
+            auto constexpr get_address() const -> uptr const { return _address; }
 
-            inline __attribute__((always_inline)) auto get_size() const -> u8 const { return _data & 0xF; }
+            auto constexpr get_size() const -> u8 const { return _data & 0xF; }
 
-            inline __attribute__((always_inline)) auto allocatable() const -> bool const { return _data & 0x10; }
+            auto constexpr allocatable() const -> bool const { return _data & 0x10; }
 
             // set address of this block
             void set_address(uptr const addr) { _address = addr; }
@@ -71,20 +71,9 @@ namespace allocator {
 
             void append_block(Block* block, Block* list);
 
-            void print_memory_map() {
-                k_console.print("MEMORY MAP\n");
-                for (usize i = 0; i < _allocated_blocks.len(); ++i) {
-                    auto iter = _allocated_blocks[i].m_next;
-                    // k_console.print("i=", i, " ");
-                    while (iter) {
-                        k_console.print("[", iter->get_size(), ",", iter->allocatable(), "]");
-                        iter = iter->m_next;
-                    }
-                    k_console.print("\n");
-                }
-            }
+            void print_memory_map();
 
-            [[nodiscard]] auto msb(u32 const num) -> u8 {
+            [[nodiscard]] auto constexpr msb(u32 const num) -> u8 {
                 return sizeof(num) * 8 - __builtin_clz(num) - 1;
             }
 

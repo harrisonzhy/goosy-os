@@ -51,7 +51,6 @@ namespace console {
                 --_current_column;
             }
         }
-        
     }
 
     auto Console::num_digits(usize num, u8 base) -> u8 {
