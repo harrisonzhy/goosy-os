@@ -19,8 +19,10 @@ namespace pagetables {
 
             // [P] return whether this PTE is present
             [[nodiscard]] auto constexpr present()       const -> bool { return _data & 1; }
+
             // [R/W] return whether this PTE is writable
             [[nodiscard]] auto constexpr writable()      const -> bool { return _data & 0b10; }
+
             // [U/S] return whether this PTE is user-accessible
             [[nodiscard]] auto constexpr user()          const -> bool { return _data & 0b100; }
             
@@ -65,10 +67,10 @@ namespace pagetables {
             auto constexpr get_pagetable_index(u32 addr) const -> usize { return (addr & 0x3FF000) >> 12; }
 
             // get physical address of the PTE with virtual address `addr'
-            auto constexpr va_to_pa(u32 addr) const -> uptr { return _entries[get_pagetable_index(addr)].get_entry_address(); }
+            auto constexpr va_to_pa(u32 addr) const -> uptr { auto idx = get_pagetable_index(addr); return _entries[idx].get_entry_address(); }
 
-            constexpr PagetableEntry& operator [] (usize const i) { return _entries[i]; }
-            constexpr const PagetableEntry& operator [] (usize const i) const { return _entries[i]; }
+            constexpr PagetableEntry& operator [] (usize const idx) { return _entries[idx]; }
+            constexpr const PagetableEntry& operator [] (usize const idx) const { return _entries[idx]; }
 
         private :
             static usize constexpr const NUM_ENTRIES = 1024;
@@ -82,13 +84,16 @@ namespace pagetables {
 
             // [P] return whether this PDE is present
             [[nodiscard]] auto constexpr present()       const -> bool { return _data & 0b1; }
+
             // [R/W] return whether this PDE is writable
             [[nodiscard]] auto constexpr writable()      const -> bool { return _data & 0b10; }
+
             // [U/S] return whether this PDE is user-accessible
             [[nodiscard]] auto constexpr user()          const -> bool { return _data & 0b100; }
             
             // [PWT] return whether write-through caching or write-back is enabled
             [[nodiscard]] auto constexpr write_through() const -> bool { return _data & 0b1000; }
+
             // [PCD] return whether this pagetable will be cached
             [[nodiscard]] auto constexpr cache_disable() const -> bool { return _data & 0b10000; }
             
@@ -137,8 +142,8 @@ namespace pagetables {
             PageDirectory(PageDirectory const& _) = delete;
             PageDirectory() {}
 
-            auto constexpr get_entry_directory(usize const i) -> PageDirectoryEntry& { return _entries[i]; }
-            auto constexpr get_entry_directory(usize const i) const -> PageDirectoryEntry const& { return _entries[i]; }
+            auto constexpr get_entry_directory(usize const idx) -> PageDirectoryEntry& { return _entries[idx]; }
+            auto constexpr get_entry_directory(usize const idx) const -> PageDirectoryEntry const& { return _entries[idx]; }
 
             // map virtual address `va' to physical address `pa' with permissions `perm'
             auto map(u32 const va, u32 const pa, u8 const perm) -> signed;
@@ -152,8 +157,8 @@ namespace pagetables {
             // get physical address of the PDE with virtual address `addr'
             auto va_to_pa(uptr const addr) const -> uptr;
 
-            PageDirectoryEntry& operator [] (usize const i) { return _entries[i]; }
-            PageDirectoryEntry const& operator [] (usize const i) const { return _entries[i]; }
+            PageDirectoryEntry& operator [] (usize const idx) { return _entries[idx]; }
+            PageDirectoryEntry const& operator [] (usize const idx) const { return _entries[idx]; }
 
             // set `%cr3' to address of page directory
             void set_page_directory() const;

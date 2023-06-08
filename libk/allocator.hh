@@ -13,9 +13,9 @@ namespace allocator {
             Block(Block const& _) = delete;
             Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(1 << 4) {}
 
-            auto constexpr get_address() const -> uptr const { return _address; }
+            auto constexpr address() const -> uptr const { return _address; }
 
-            auto constexpr get_size() const -> u8 const { return _data & 0xF; }
+            auto constexpr size() const -> u8 const { return _data & 0xF; }
 
             auto constexpr allocatable() const -> bool const { return _data & 0x10; }
 
@@ -23,7 +23,7 @@ namespace allocator {
             void set_address(uptr const addr) { _address = addr; }
 
             // set size of corresponding allocation (bits 3-0)
-            void set_size(u8 const size) { _data &= 0xF0; _data |= size; }
+            void set_size(u8 const size) { auto lower = size & 0xF; _data = (_data & 0xF0) | (lower & 0x0F); }
 
             // set whether this block is allocatable (bit 4)
             void set_allocatable(bool allocatable) {

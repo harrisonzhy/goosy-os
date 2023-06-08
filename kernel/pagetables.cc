@@ -8,13 +8,14 @@ using namespace allocator;
 extern BuddyAllocator k_allocator;
 
 auto PageDirectory::map(u32 const va, u32 const pa, u8 const perm) -> signed {
-    auto& pt = _entries[va_to_index(va)];
+    auto idx = va_to_index(va);
+    auto& pt = _entries[idx];
     return pt.map(va, pa, perm);
 }
 
 auto PageDirectory::try_map(u32 const va, u32 const pa, u8 const perm) -> signed {
-    auto const i = va_to_index(va);
-    auto& pt = _entries[i];
+    auto const idx = va_to_index(va);
+    auto& pt = _entries[idx];
     if (pt.get_entry_address() == 0) {
         auto const k = k_allocator.kmalloc(PAGESIZE);
         if (!k) {
