@@ -51,17 +51,16 @@ auto PageDirectoryEntry::add_pagetable(uptr const pt_addr, u8 const perm) -> sig
 }
 
 void PageDirectory::set_page_directory() const {
-    asm volatile(
+    __asm__ __volatile__(
         "mov %0, %%cr3;"
         :
         : "r"(this)
-        : "memory"
-    );
+        : "memory");
 }
 
 void pagetables::enable_paging() {
     u32 cr0 = 0;
-    asm volatile(
+    __asm__ __volatile__(
         "mov %%cr0, %0;"
         "or $0x80000000, %0;"
         "mov %0, %%cr0;"

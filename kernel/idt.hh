@@ -28,6 +28,7 @@ namespace idt {
         public :
             IdtRegister(IdtRegister const& _) = delete;
             IdtRegister() {}
+
             u16 m_limit;
             u32 m_base;
     }__attribute__((packed));
@@ -36,6 +37,7 @@ namespace idt {
         public :
             IdtFrame(IdtFrame const& _) = delete;
             IdtFrame() {}
+            
             u32 eip;
             u32 cs;
             u32 eflags;
@@ -54,7 +56,7 @@ namespace idt {
     }
 
     // default interrupt handler
-    __attribute__((interrupt)) void handle_default_int(IdtFrame const& frame, u32 const errno) {
+    __attribute__((interrupt)) void handle_default_int(IdtFrame const& frame) {
         k_console.print("INTERRUPT HANDLED\n");
     }
 
@@ -67,7 +69,7 @@ namespace idt {
 
                 Array<u8, 0x8> excp_errno_entries = {8, 10, 11, 12, 13, 14, 17, 21};
                 for (u8 i = 0; i < 0x20; ++i) {
-                    bool errno_entry = false;
+                    auto errno_entry = false;
                     for (u8 j = 0; j < excp_errno_entries.len(); ++j) {
                         errno_entry += (i == excp_errno_entries[j]);
                     }

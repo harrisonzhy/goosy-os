@@ -180,7 +180,7 @@ void BuddyAllocator::print_memory_map() {
     k_console.print("MEMORY MAP\n");
     for (u8 i = 0; i < 10; ++i) {
         auto it = _allocated_blocks[i].m_next;
-        k_console.print("i=", i, "  ");
+        k_console.print(i, "  ");
         while (it) {
             k_console.print("[", it->allocatable(), "]");
             it = it->m_next;
@@ -189,7 +189,7 @@ void BuddyAllocator::print_memory_map() {
     }
     for (u8 i = 10; i < NUM_ENTRIES_ALLOC; ++i) {
         auto it = _allocated_blocks[i].m_next;
-        k_console.print("i=", i, " ");
+        k_console.print(i, " ");
         while (it) {
             k_console.print("[", it->allocatable(), "]");
             it = it->m_next;

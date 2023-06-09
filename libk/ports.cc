@@ -2,12 +2,12 @@
 
 namespace ports {
     void outb(u16 port, u8 val) {
-        asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
+        __asm__ __volatile__("outb %0, %1" : : "a"(val), "Nd"(port));
     }
 
     auto inb(u16 port) -> u8 {
         u8 ret = 0;
-        asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+        __asm__ __volatile__("inb %1, %0" : "=a"(ret) : "Nd"(port));
         return ret;
     }
 
