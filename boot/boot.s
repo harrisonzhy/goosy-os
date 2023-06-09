@@ -22,7 +22,7 @@ KERNEL_OFFSET equ 0x1000
 [bits 16]
 load_kernel:
     mov     bx, KERNEL_OFFSET
-    mov     al, 32 ; sectors to load
+    mov     al, 64 ; sectors to load
     call    disk_load
     ret
 
@@ -52,7 +52,7 @@ init_protmode:
 [bits 32]
 BEGIN_PROTMODE:
     mov     ebx, PROTMODE_MSG
-    call    vga_print ; print `PROTMODE_MSG`
+    call    vga_print ; print `PROTMODE_MSG'
     call    KERNEL_OFFSET
     jmp     $
 

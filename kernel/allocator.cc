@@ -6,13 +6,13 @@ using namespace allocator;
 
 auto BuddyAllocator::kmalloc(usize const size) -> uptr {
     usize const req_aligned = (size + PAGE_SIZE - 1) & -PAGE_SIZE;
-    if (req_aligned > (1 << 27)) [[unlikely]] {
+    if (req_aligned > MAX_ALLOC_SIZE) [[unlikely]] {
         return 0;
     }
 
     u8 const PAGE_SIZE_msb = msb(PAGE_SIZE);
     u8 const size_msb = msb(req_aligned) - PAGE_SIZE_msb;
-    for (u8 i = size_msb; i < _allocated_blocks.len(); ++i) {
+    for (u8 i = size_msb; i < NUM_ENTRIES_ALLOC; ++i) {
         auto const bl = find_min_free(i);
         if (bl) {
             uptr const bl_addr = bl->address();
@@ -50,7 +50,6 @@ auto BuddyAllocator::kmalloc(usize const size) -> uptr {
             }
             bl->set_address(bl_addr);
             bl->set_allocatable(false);
-            bl->set_size(size_msb);
             append_block(bl, &_allocated_blocks[size_msb]);
 
             return bl_addr + MIN_ADDRESS;
@@ -64,12 +63,12 @@ void BuddyAllocator::kfree(uptr const addr) {
     uptr const req_addr = addr - MIN_ADDRESS;
 
     // search for block with address `addr'
-    for (u8 i = 0; i < _allocated_blocks.len(); ++i) {
+    for (u8 i = 0; i < NUM_ENTRIES_ALLOC; ++i) {
         auto it_bl = _allocated_blocks[i].m_next;
         while (it_bl) {
             auto const bl_addr = it_bl->address();
             if (bl_addr == req_addr && !it_bl->allocatable()) {
-                usize const size = 1 << (it_bl->size() + PAGE_SIZE_msb);
+                usize const size = 1 << (i + PAGE_SIZE_msb);
                 it_bl->set_allocatable(true);
 
                 // search for free buddy with address `buddy_addr'
@@ -106,7 +105,7 @@ auto BuddyAllocator::coalesce(uptr const addr, u8 const idx) -> u8 {
 
     // coalesce up
     uptr next_addr = addr;
-    for (u8 i = idx; i < _allocated_blocks.len(); ++i) {
+    for (u8 i = idx; i < NUM_ENTRIES_ALLOC; ++i) {
         usize const size = 1 << (i + PAGE_SIZE_msb);
         uptr const bd_addr = next_addr ^ size;
         next_addr = (next_addr < bd_addr) ? next_addr : bd_addr;
@@ -122,7 +121,6 @@ auto BuddyAllocator::coalesce(uptr const addr, u8 const idx) -> u8 {
                 }
                 it->set_address(0);
                 it->set_allocatable(true);
-                it->set_size(0);
                 break;
             }
             it = it->m_next;
@@ -132,7 +130,7 @@ auto BuddyAllocator::coalesce(uptr const addr, u8 const idx) -> u8 {
             return i;
         }
     }
-    return _allocated_blocks.len() - 1;
+    return NUM_ENTRIES_ALLOC - 1;
 }
 
 auto BuddyAllocator::kmalloc_next_block() -> Block* {
@@ -180,11 +178,20 @@ void BuddyAllocator::append_block(Block* block, Block* root) {
 
 void BuddyAllocator::print_memory_map() {
     k_console.print("MEMORY MAP\n");
-    for (u8 i = 0; i < _allocated_blocks.len(); ++i) {
+    for (u8 i = 0; i < 10; ++i) {
         auto it = _allocated_blocks[i].m_next;
-        k_console.print(i, " ");
+        k_console.print("i=", i, "  ");
         while (it) {
-            // k_console.print("[", it->size(), ",", it->allocatable(), "]");
+            k_console.print("[", it->allocatable(), "]");
+            it = it->m_next;
+        }
+        k_console.print("\n");
+    }
+    for (u8 i = 10; i < NUM_ENTRIES_ALLOC; ++i) {
+        auto it = _allocated_blocks[i].m_next;
+        k_console.print("i=", i, " ");
+        while (it) {
+            k_console.print("[", it->allocatable(), "]");
             it = it->m_next;
         }
         k_console.print("\n");

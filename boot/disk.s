@@ -6,7 +6,7 @@ BIOS_DISK_INTR  equ 0x13
 disk_load:
     push    ax
     mov     ah, BIOS_DISK_READ
-    ; mov     al, dh        ; read `dh` sectors
+    ; mov     al, dh        ; read `dh' sectors
     mov     cl, 0x02        ; read from sector 2 (sector 1 is boot)
     mov     ch, 0x00        ; read from cylinder 0
     mov     dh, 0x00        ; read from head 0

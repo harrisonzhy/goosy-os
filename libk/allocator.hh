@@ -11,24 +11,18 @@ namespace allocator {
     class Block {
         public :
             Block(Block const& _) = delete;
-            Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(1 << 4) {}
+            Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(0b1) {}
 
             auto constexpr address() const -> uptr const { return _address; }
 
-            auto constexpr size() const -> u8 const { return _data & 0xF; }
-
-            auto constexpr allocatable() const -> bool const { return _data & 0x10; }
+            auto constexpr allocatable() const -> bool const { return _data & 0b1; }
 
             // set address of this block
             void set_address(uptr const addr) { _address = addr; }
 
-            // set size of corresponding allocation (bits 3-0)
-            void set_size(u8 const size) { auto lower = size & 0xF; _data = (_data & 0xF0) | (lower & 0x0F); }
-
-            // set whether this block is allocatable (bit 4)
+            // set whether this block is allocatable (bit 0)
             void set_allocatable(bool allocatable) {
-                auto const upper = _data & ~(1 << 4);
-                _data = upper | (allocatable << 4);
+                _data ^= -allocatable ^ _data;
             }
 
             Block* m_next;
@@ -43,19 +37,18 @@ namespace allocator {
         public :
             BuddyAllocator(BuddyAllocator const& _) = delete;
             BuddyAllocator() {
-                for (usize i = 1; i < _memory_blocks.len(); ++i) {
+                for (u8 i = 1; i < NUM_ENTRIES_MEM; ++i) {
                     _memory_blocks[i].m_prev = &_memory_blocks[i - 1];
                     _memory_blocks[i - 1].m_next = &_memory_blocks[i];
                 }
-                for (usize i = 0; i < _allocated_blocks.len(); ++i) {
+                for (u8 i = 0; i < NUM_ENTRIES_ALLOC; ++i) {
                     _allocated_blocks[i].set_allocatable(false);
                 }
+                _allocated_blocks[NUM_ENTRIES_ALLOC - 1].m_next = &_memory_blocks[0];
 
                 // create starting block of maximum size
-                usize const l = _allocated_blocks.len() - 1;
-                _memory_blocks[0].m_prev = &_allocated_blocks[l];
+                _memory_blocks[0].m_prev = &_allocated_blocks[NUM_ENTRIES_ALLOC - 1];
                 _memory_blocks[0].m_next = nullptr;
-                _allocated_blocks[l].m_next = &_memory_blocks[0];
                 current_block = &_memory_blocks[1];
             }
 
@@ -78,12 +71,16 @@ namespace allocator {
             }
 
         private :
-            Array<Block, 0x32> _memory_blocks;
-            Array<Block, 0x15> _allocated_blocks;
-            Block* current_block;
+            usize static constexpr const NUM_ENTRIES_MEM = 0x32;
+            usize static constexpr const NUM_ENTRIES_ALLOC = 0x15;
+            usize static constexpr const MAX_ALLOC_SIZE = 0x8000000;
 
             u32 static constexpr const MIN_ADDRESS = 0x200000;
             u32 static constexpr const MAX_ADDRESS = 0xFFFFFFFF;
             u32 static constexpr const PAGE_SIZE   = 0x1000;
+
+            Array<Block, NUM_ENTRIES_MEM> _memory_blocks;
+            Array<Block, NUM_ENTRIES_ALLOC> _allocated_blocks;
+            Block* current_block;
     };
 }

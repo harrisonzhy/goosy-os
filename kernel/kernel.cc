@@ -2,12 +2,13 @@
 
 using namespace console;
 using namespace allocator;
+using namespace idt;
 
 BuddyAllocator k_allocator;
 Console k_console;
+Idt k_idt;
 
 extern "C" void main() {
-    // k_allocator.print_memory_map();
     auto a1 = k_allocator.kmalloc(1 << 27);
     auto a5 = k_allocator.kmalloc(1 << 27);
     auto a2 = k_allocator.kmalloc(1 << 12);
@@ -22,7 +23,5 @@ extern "C" void main() {
     k_allocator.kfree(a7);
     k_allocator.kfree(a3);
     k_allocator.kfree(a5);
-    
-    // k_console.print(a1, " ", a2, " ", a3, " ", a4, " ", a5, " ", a6, " ", a7, "\n");
     k_allocator.print_memory_map();
 }

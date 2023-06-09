@@ -73,7 +73,7 @@ namespace pagetables {
             constexpr const PagetableEntry& operator [] (usize const idx) const { return _entries[idx]; }
 
         private :
-            static usize constexpr const NUM_ENTRIES = 1024;
+            usize static constexpr const NUM_ENTRIES = 0x400;
             Array<PagetableEntry, NUM_ENTRIES> _entries;
     }__attribute__((aligned(PAGESIZE)));
 
