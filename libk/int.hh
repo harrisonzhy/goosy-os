@@ -20,7 +20,7 @@ constexpr u8    operator "" _u8    (unsigned long long int i) { return u8(i);   
 constexpr u16   operator "" _u16   (unsigned long long int i) { return u16(i);   }
 constexpr u32   operator "" _u32   (unsigned long long int i) { return u32(i);   }
 constexpr u64   operator "" _u64   (unsigned long long int i) { return u64(i);   }
-constexpr uptr  operator "" _uptr  (unsigned long long int i) { return usize(i); }
+constexpr uptr  operator "" _uptr  (unsigned long long int i) { return uptr(i); }
 
 constexpr i8    operator "" _i8    (unsigned long long int i) { return i8(i);    }
 constexpr i16   operator "" _i16   (unsigned long long int i) { return i16(i);   }

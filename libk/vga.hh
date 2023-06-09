@@ -24,11 +24,11 @@ enum vga_color {
 extern "C" {
 #endif
 
-inline __attribute__((always_inline)) auto vga_entry_color(enum vga_color fg, enum vga_color bg) -> u8 {
+inline __attribute__((always_inline)) auto vga_entry_color(vga_color const fg, vga_color const bg) -> u8 {
 	return (fg | bg) << 4;
 }
 
-inline __attribute__((always_inline)) auto vga_entry(char const c, enum vga_color fg, enum vga_color bg) -> u16 {
+inline __attribute__((always_inline)) auto vga_entry(char const c, vga_color const fg, vga_color const bg) -> u16 {
 	u16 const color = (bg << 4) | fg;
 	return (color << 8) | c;
 }

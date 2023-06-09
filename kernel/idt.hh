@@ -45,19 +45,34 @@ namespace idt {
             u32 ss;
     }__attribute__((packed));
 
+    void print_stack_frame(IdtFrame const& frame) {
+        k_console.switch_color(Console::DEFAULT_FG, Console::DEFAULT_BG);
+        k_console.print_line("\%eip   ", reinterpret_cast<void const*>(frame.eip));
+        k_console.print_line("\%cs    ", reinterpret_cast<void const*>(frame.cs));
+        k_console.print_line("eflags ", reinterpret_cast<void const*>(frame.eflags));
+        k_console.print_line("\%esp   ", reinterpret_cast<void const*>(frame.esp));
+        k_console.print_line("\%ss    ", reinterpret_cast<void const*>(frame.ss));
+    }
+
     // default exception handler
-    __attribute__((interrupt)) void handle_default_excp(IdtFrame const& frame) {
-        k_console.print("EXCEPTION HANDLED, ERRNO: null\n");
+    __attribute__((interrupt)) void handle_default_excp(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
     }
 
     // default exception handler with error code
-    __attribute__((interrupt)) void handle_default_excp_errno(IdtFrame const& frame, u32 const errno) {
-        k_console.print("EXCEPTION HANDLED, ERRNO: ", errno, "\n");
+    __attribute__((interrupt)) void handle_default_excp_errcode(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION | ERRCODE ", errcode);
+        print_stack_frame(frame);
+        while (true);
     }
 
     // default interrupt handler
-    __attribute__((interrupt)) void handle_default_int(IdtFrame const& frame) {
-        k_console.print("INTERRUPT HANDLED\n");
+    __attribute__((interrupt)) void handle_default_int(IdtFrame& frame) {
+        k_console.print_line("INTERRUPT");
     }
 
     class Idt {
@@ -67,17 +82,17 @@ namespace idt {
                 _idtr.m_limit = static_cast<u16 const>(8 * NUM_ENTRIES);
                 _idtr.m_base = reinterpret_cast<u32 const>(&_entries[0]);
 
-                Array<u8, 0x8> excp_errno_entries = {8, 10, 11, 12, 13, 14, 17, 21};
+                Array<u8, 0x8> excp_errcode_entries = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15};
                 for (u8 i = 0; i < 0x20; ++i) {
-                    auto errno_entry = false;
-                    for (u8 j = 0; j < excp_errno_entries.len(); ++j) {
-                        errno_entry += (i == excp_errno_entries[j]);
+                    auto errcode_entry = false;
+                    for (u8 j = 0; j < excp_errcode_entries.len(); ++j) {
+                        errcode_entry += (i == excp_errcode_entries[j]);
                     }
-                    if (!errno_entry) {
+                    if (!errcode_entry) {
                         add_isr(i, reinterpret_cast<void*>(handle_default_excp), TRAP_GATE_FLAGS);
                     }
                     else {
-                        add_isr(i, reinterpret_cast<void*>(handle_default_excp_errno), TRAP_GATE_FLAGS);
+                        add_isr(i, reinterpret_cast<void*>(handle_default_excp_errcode), TRAP_GATE_FLAGS);
                     }
                 }
                 for (u16 i = 0x20; i < NUM_ENTRIES; ++i) {
