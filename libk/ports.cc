@@ -6,12 +6,12 @@ namespace ports {
     }
 
     auto inb(u16 port) -> u8 {
-        u8 ret = 0;
+        u8 ret;
         __asm__ __volatile__("inb %1, %0" : "=a"(ret) : "Nd"(port));
         return ret;
     }
 
     void io_wait() {
-        outb(0x80, 0);
+        __asm__ __volatile__("outb %%al, $0x80" : : "a"(0));
     }
 }

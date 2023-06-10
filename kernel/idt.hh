@@ -47,11 +47,11 @@ namespace idt {
 
     void print_stack_frame(IdtFrame const& frame) {
         k_console.switch_color(Console::DEFAULT_FG, Console::DEFAULT_BG);
-        k_console.print_line("\%eip   ", reinterpret_cast<void const*>(frame.eip));
-        k_console.print_line("\%cs    ", reinterpret_cast<void const*>(frame.cs));
-        k_console.print_line("eflags ", reinterpret_cast<void const*>(frame.eflags));
-        k_console.print_line("\%esp   ", reinterpret_cast<void const*>(frame.esp));
-        k_console.print_line("\%ss    ", reinterpret_cast<void const*>(frame.ss));
+        k_console.print_line("\%eip   ", reinterpret_cast<u32 const*>(frame.eip));
+        k_console.print_line("\%cs    ", reinterpret_cast<u32 const*>(frame.cs));
+        k_console.print_line("eflags ", reinterpret_cast<u32 const*>(frame.eflags));
+        k_console.print_line("\%esp   ", reinterpret_cast<u32 const*>(frame.esp));
+        k_console.print_line("\%ss    ", reinterpret_cast<u32 const*>(frame.ss));
     }
 
     // default exception handler
@@ -72,7 +72,9 @@ namespace idt {
 
     // default interrupt handler
     __attribute__((interrupt)) void handle_default_int(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_WHITE);
         k_console.print_line("INTERRUPT");
+        print_stack_frame(frame);
     }
 
     class Idt {
