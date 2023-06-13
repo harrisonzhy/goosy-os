@@ -3,10 +3,10 @@
 #include "../libk/int.hh"
 #include "../libk/array.hh"
 
-auto constexpr const TRAP_GATE_FLAGS      = 0x8F; // P = 1, DPL = 0b00, S = 0, type = 0b1111
-auto constexpr const INT_GATE_FLAGS       = 0x8E; // P = 1, DPL = 0b00, S = 0, type = 0b1110
-auto constexpr const INT_GATE_FLAGS_USER  = 0xEE; // P = 1, DPL = 0b11, S = 0, type = 0b1110
-auto constexpr const PAGESIZE = 0x1000;
+auto constexpr const TRAP_GATE_FLAGS     = 0x8F; // P = 1, DPL = 0b00, S = 0, type = 0b1111
+auto constexpr const INT_GATE_FLAGS      = 0x8E; // P = 1, DPL = 0b00, S = 0, type = 0b1110
+auto constexpr const INT_GATE_FLAGS_USER = 0xEE; // P = 1, DPL = 0b11, S = 0, type = 0b1110
+auto constexpr const PAGESIZE            = 0x1000;
 
 using namespace console;
 extern Console k_console;
@@ -14,8 +14,8 @@ extern Console k_console;
 namespace idt {
     class IdtEntry {
         public :
-            IdtEntry(IdtEntry const& _) = delete;
-            IdtEntry() : m_isr_lower(0), m_selector(0), m_reserved(0), m_flags(0), m_isr_upper(0) {}
+            constexpr IdtEntry(IdtEntry const& _) = delete;
+            constexpr IdtEntry() : m_isr_lower(0), m_selector(0), m_reserved(0), m_flags(0), m_isr_upper(0) {}
             
             u16 m_isr_lower;
             u16 m_selector;
@@ -26,8 +26,8 @@ namespace idt {
 
     class IdtRegister {
         public :
-            IdtRegister(IdtRegister const& _) = delete;
-            IdtRegister() {}
+            constexpr IdtRegister(IdtRegister const& _) = delete;
+            constexpr IdtRegister() {}
 
             u16 m_limit;
             u32 m_base;
@@ -35,8 +35,8 @@ namespace idt {
 
     class IdtFrame {
         public :
-            IdtFrame(IdtFrame const& _) = delete;
-            IdtFrame() {}
+            constexpr IdtFrame(IdtFrame const& _) = delete;
+            constexpr IdtFrame() {}
             
             u32 eip;
             u32 cs;
@@ -54,10 +54,194 @@ namespace idt {
         k_console.print_line("\%ss    ", reinterpret_cast<u32 const*>(frame.ss));
     }
 
+    // [0x00] #DE exception handler
+    __attribute__((interrupt)) void handle_div_err(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x00] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+    
+    // [0x01] #DB exception handler
+    __attribute__((interrupt)) void handle_debug(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x01] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+    
+    // [0x02] #-- exception handler
+    __attribute__((interrupt)) void handle_nonmaskable_int(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x02] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+    
+    // [0x03] #BP exception handler
+    __attribute__((interrupt)) void handle_breakpoint(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x03] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x04] #OF exception handler
+    __attribute__((interrupt)) void handle_overflow(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x04] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+    
+    // [0x05] #BR exception handler
+    __attribute__((interrupt)) void handle_bound_exceeded(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x05] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+    
+    // [0x06] #UD exception handler
+    __attribute__((interrupt)) void handle_invalid_opcode(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x06] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x07] #NM exception handler
+    __attribute__((interrupt)) void handle_device_navail(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x07] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x08] #DF exception handler
+    __attribute__((interrupt)) void handle_double_fault(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x08] | ERRCODE ", errcode);
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x0A] #TS exception handler
+    __attribute__((interrupt)) void handle_invalid_tss(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x0A] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x0B] #NP exception handler
+    __attribute__((interrupt)) void handle_segment_npresent(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x0B] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x0C] #SS exception handler
+    __attribute__((interrupt)) void handle_ss_fault(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x0C] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x0D] #GP exception handler
+    __attribute__((interrupt)) void handle_gen_prot_fault(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x0D] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x0E] #PF exception handler
+    __attribute__((interrupt)) void handle_page_fault(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x0E] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x10] #MF exception handler
+    __attribute__((interrupt)) void handle_x87_fp_excp(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x10] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x11] #AC exception handler
+    __attribute__((interrupt)) void handle_align_check(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x11] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x12] #MC exception handler
+    __attribute__((interrupt)) void handle_mach_check(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x12] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x13] #XF exception handler
+    __attribute__((interrupt)) void handle_simd_fp_excp(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x13] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x14] #VE exception handler
+    __attribute__((interrupt)) void handle_virt_excp(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x14] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x15] #CP exception handler
+    __attribute__((interrupt)) void handle_control_prot_excp(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x15] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x1C] #HV exception handler
+    __attribute__((interrupt)) void handle_hypervis_inj_excp(IdtFrame& frame) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x1C] | ERRCODE 0x??"); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x1D] #VC exception handler
+    __attribute__((interrupt)) void handle_vmm_comm_excp(IdtFrame& frame, u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x1D] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
+    // [0x1E] #SX exception handler
+    __attribute__((interrupt)) void handle_security_excp(IdtFrame& frame,u32 const errcode) {
+        k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
+        k_console.print_line("EXCEPTION [0x1E] | ERRCODE ", errcode); 
+        print_stack_frame(frame);
+        while (true);
+    }
+
     // default exception handler
     __attribute__((interrupt)) void handle_default_excp(IdtFrame& frame) {
         k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
-        k_console.print_line("EXCEPTION | ERRCODE 0x??"); 
+        k_console.print_line("EXCEPTION [0x??] | ERRCODE 0x??"); 
         print_stack_frame(frame);
         while (true);
     }
@@ -65,7 +249,7 @@ namespace idt {
     // default exception handler with error code
     __attribute__((interrupt)) void handle_default_excp_errcode(IdtFrame& frame, u32 const errcode) {
         k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
-        k_console.print_line("EXCEPTION | ERRCODE ", errcode);
+        k_console.print_line("EXCEPTION [0x??] | ERRCODE ", errcode);
         print_stack_frame(frame);
         while (true);
     }
@@ -73,7 +257,7 @@ namespace idt {
     // default interrupt handler
     __attribute__((interrupt)) void handle_default_int(IdtFrame& frame) {
         k_console.switch_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_WHITE);
-        k_console.print_line("INTERRUPT");
+        k_console.print_line("INTERRUPT [0x??]");
         print_stack_frame(frame);
     }
 
@@ -84,19 +268,31 @@ namespace idt {
                 _idtr.m_limit = static_cast<u16 const>(8 * NUM_ENTRIES);
                 _idtr.m_base = reinterpret_cast<u32 const>(&_entries[0]);
 
-                Array<u8, 0x8> excp_errcode_entries = {0x8, 0xA, 0xB, 0xC, 0xD, 0xE, 0x11, 0x15};
-                for (u8 i = 0; i < 0x20; ++i) {
-                    auto errcode_entry = false;
-                    for (u8 j = 0; j < excp_errcode_entries.len(); ++j) {
-                        errcode_entry += (i == excp_errcode_entries[j]);
-                    }
-                    if (!errcode_entry) {
-                        add_isr(i, reinterpret_cast<void*>(handle_default_excp), TRAP_GATE_FLAGS);
-                    }
-                    else {
-                        add_isr(i, reinterpret_cast<void*>(handle_default_excp_errcode), TRAP_GATE_FLAGS);
-                    }
-                }
+                // add exceptions (INT 0x00-0x1F)
+                add_isr(0x00, reinterpret_cast<void*>(handle_div_err), TRAP_GATE_FLAGS);
+                add_isr(0x01, reinterpret_cast<void*>(handle_debug), TRAP_GATE_FLAGS);
+                add_isr(0x02, reinterpret_cast<void*>(handle_nonmaskable_int), INT_GATE_FLAGS);
+                add_isr(0x03, reinterpret_cast<void*>(handle_breakpoint), TRAP_GATE_FLAGS);
+                add_isr(0x04, reinterpret_cast<void*>(handle_overflow), TRAP_GATE_FLAGS);
+                add_isr(0x05, reinterpret_cast<void*>(handle_bound_exceeded), TRAP_GATE_FLAGS);
+                add_isr(0x06, reinterpret_cast<void*>(handle_invalid_opcode), TRAP_GATE_FLAGS);
+                add_isr(0x07, reinterpret_cast<void*>(handle_device_navail), TRAP_GATE_FLAGS);
+                add_isr(0x08, reinterpret_cast<void*>(handle_double_fault), TRAP_GATE_FLAGS);
+                add_isr(0x0A, reinterpret_cast<void*>(handle_invalid_tss), TRAP_GATE_FLAGS);
+                add_isr(0x0B, reinterpret_cast<void*>(handle_segment_npresent), TRAP_GATE_FLAGS);
+                add_isr(0x0C, reinterpret_cast<void*>(handle_ss_fault), TRAP_GATE_FLAGS);
+                add_isr(0x0D, reinterpret_cast<void*>(handle_gen_prot_fault), TRAP_GATE_FLAGS);
+                add_isr(0x0E, reinterpret_cast<void*>(handle_page_fault), TRAP_GATE_FLAGS);
+                add_isr(0x10, reinterpret_cast<void*>(handle_x87_fp_excp), TRAP_GATE_FLAGS);
+                add_isr(0x11, reinterpret_cast<void*>(handle_align_check), TRAP_GATE_FLAGS);
+                add_isr(0x12, reinterpret_cast<void*>(handle_mach_check), TRAP_GATE_FLAGS);
+                add_isr(0x13, reinterpret_cast<void*>(handle_simd_fp_excp), TRAP_GATE_FLAGS);
+                add_isr(0x14, reinterpret_cast<void*>(handle_virt_excp), TRAP_GATE_FLAGS);
+                add_isr(0x15, reinterpret_cast<void*>(handle_control_prot_excp), TRAP_GATE_FLAGS);
+                add_isr(0x1C, reinterpret_cast<void*>(handle_hypervis_inj_excp), TRAP_GATE_FLAGS);
+                add_isr(0x1D, reinterpret_cast<void*>(handle_vmm_comm_excp), TRAP_GATE_FLAGS);
+                add_isr(0x1E, reinterpret_cast<void*>(handle_security_excp), TRAP_GATE_FLAGS);
+
                 for (u16 i = 0x20; i < NUM_ENTRIES; ++i) {
                     add_isr(i, reinterpret_cast<void*>(handle_default_int), INT_GATE_FLAGS);
                 }

@@ -1,6 +1,7 @@
 #pragma once
-#include "int.hh"
+#include "../libk/allocator.hh"
 #include "array.hh"
+#include "int.hh"
 #include "option.hh"
 
 auto constexpr const PAGESIZE = 0x1000;
@@ -14,8 +15,8 @@ auto constexpr const PTE_PU   = PTE_P | PTE_U;
 namespace pagetables {
     class PagetableEntry {
         public :
-            PagetableEntry(PagetableEntry const& _) = delete;
-            PagetableEntry() : _data(0) {}
+            constexpr PagetableEntry(PagetableEntry const& _) = delete;
+            constexpr PagetableEntry() : _data(0) {}
 
             // [P] return whether this PTE is present
             [[nodiscard]] auto constexpr present()       const -> bool { return _data & 1; }
@@ -60,8 +61,8 @@ namespace pagetables {
 
     class Pagetable {
         public :
-            Pagetable(Pagetable const& _) = delete;
-            Pagetable() {}
+            constexpr Pagetable(Pagetable const& _) = delete;
+            constexpr Pagetable() {}
 
             // get index of the PTE with virtual address `addr' (bits 21-12)
             auto constexpr get_pagetable_index(u32 addr) const -> usize { return (addr & 0x3FF000) >> 12; }
@@ -79,8 +80,8 @@ namespace pagetables {
 
     class PageDirectoryEntry {
         public :
-            PageDirectoryEntry(PageDirectoryEntry const& _) = delete;
-            PageDirectoryEntry() : _data(0) {}
+            constexpr PageDirectoryEntry(PageDirectoryEntry const& _) = delete;
+            constexpr PageDirectoryEntry() : _data(0) {}
 
             // [P] return whether this PDE is present
             [[nodiscard]] auto constexpr present()       const -> bool { return _data & 0b1; }
@@ -139,8 +140,8 @@ namespace pagetables {
 
     class PageDirectory {
         public :
-            PageDirectory(PageDirectory const& _) = delete;
-            PageDirectory() {}
+            constexpr PageDirectory(PageDirectory const& _) = delete;
+            constexpr PageDirectory() {}
 
             auto constexpr get_entry_directory(usize const idx) -> PageDirectoryEntry& { return _entries[idx]; }
             auto constexpr get_entry_directory(usize const idx) const -> PageDirectoryEntry const& { return _entries[idx]; }

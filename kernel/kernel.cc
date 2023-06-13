@@ -7,10 +7,11 @@ using namespace pic;
 
 BuddyAllocator k_allocator;
 Console k_console;
-Pic k_pic;
-Idt k_idt;
 
 extern "C" void main() {
+    Idt k_idt;
+    Pic k_pic;
+
     auto a1 = k_allocator.kmalloc(1 << 27);
     auto a5 = k_allocator.kmalloc(1 << 27);
     auto a2 = k_allocator.kmalloc(1 << 12);

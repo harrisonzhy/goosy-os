@@ -1,6 +1,4 @@
 #include "../libk/pagetables.hh"
-#include "../libk/allocator.hh"
-#include "../libk/int.hh"
 
 using namespace pagetables;
 using namespace allocator;

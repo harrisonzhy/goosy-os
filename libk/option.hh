@@ -25,14 +25,15 @@ class Option {
         T _val;
         bool _present;
 };
+
 template <typename T>
 Option(T) -> Option<T>;
 
 template<typename T>
 class Option<T&> {
     public :
-        constexpr Option(T const& value) : _val(&value) {}
         constexpr Option(T& value) : _val(&value) {}
+        constexpr Option(T const& value) : _val(&value) {}
         constexpr Option() : _val(nullptr) {}
 
         auto constexpr none() -> bool { return !_val; }
