@@ -26,8 +26,21 @@ class Option {
         bool _present;
 };
 
-template <typename T>
-Option(T) -> Option<T>;
+template<typename T> Option(T) -> Option<T>;
+
+auto constexpr const Nok = false;
+auto constexpr const Ok  = true;
+
+template<typename T>
+class Result {
+    public :
+        constexpr Result(T const& value) : Ok(Ok) {}
+        constexpr Result() : Ok(Nok) {}
+
+        bool Ok;
+};
+
+template<typename T> Result(T) -> Result<T>;
 
 template<typename T>
 class Option<T&> {
@@ -51,5 +64,4 @@ class Option<T&> {
         T* _val;
 };
 
-template <typename T>
-Option(T&) -> Option<T&>;
+template <typename T> Option(T&) -> Option<T&>;

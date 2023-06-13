@@ -2,6 +2,7 @@
 #include "array.hh"
 #include "int.hh"
 #include "tty.hh"
+#include "option.hh"
 
 using namespace console;
 
@@ -10,8 +11,8 @@ extern Console k_console;
 namespace allocator {
     class Block {
         public :
-            Block(Block const& _) = delete;
-            Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(0b1) {}
+            constexpr Block(Block const& _) = delete;
+            constexpr Block() : m_next(nullptr), m_prev(nullptr), _address(0), _data(0b1) {}
 
             auto constexpr address() const -> uptr const { return _address; }
 
@@ -44,11 +45,11 @@ namespace allocator {
                 for (u8 i = 0; i < NUM_ENTRIES_ALLOC; ++i) {
                     _allocated_blocks[i].set_allocatable(false);
                 }
-                _allocated_blocks[NUM_ENTRIES_ALLOC - 1].m_next = &_memory_blocks[0];
+                _allocated_blocks.last().m_next = &_memory_blocks[0];
 
                 // create starting block of maximum size
-                _memory_blocks[0].m_prev = &_allocated_blocks[NUM_ENTRIES_ALLOC - 1];
-                _memory_blocks[0].m_next = nullptr;
+                _memory_blocks.begin()->m_prev = &_allocated_blocks.last();
+                _memory_blocks.begin()->m_next = nullptr;
                 current_block = &_memory_blocks[1];
             }
 

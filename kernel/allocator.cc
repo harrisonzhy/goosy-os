@@ -177,7 +177,9 @@ void BuddyAllocator::append_block(Block* block, Block* root) {
 }
 
 void BuddyAllocator::print_memory_map() {
+    k_console.switch_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK);
     k_console.print("MEMORY MAP\n");
+    k_console.switch_color(Console::DEFAULT_FG, Console::DEFAULT_BG);
     for (u8 i = 0; i < 10; ++i) {
         auto it = _allocated_blocks[i].m_next;
         k_console.print(i, "  ");

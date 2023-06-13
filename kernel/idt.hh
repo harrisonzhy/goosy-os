@@ -15,13 +15,13 @@ namespace idt {
     class IdtEntry {
         public :
             constexpr IdtEntry(IdtEntry const& _) = delete;
-            constexpr IdtEntry() : m_isr_lower(0), m_selector(0), m_reserved(0), m_flags(0), m_isr_upper(0) {}
+            constexpr IdtEntry() : m_isr_low(0), m_selector(0), m_reserved(0), m_flags(0), m_isr_high(0) {}
             
-            u16 m_isr_lower;
+            u16 m_isr_low;
             u16 m_selector;
             u8 m_reserved;
             u8 m_flags;
-            u16 m_isr_upper;
+            u16 m_isr_high;
     }__attribute__((packed));
 
     class IdtRegister {
@@ -185,7 +185,7 @@ namespace idt {
     // [0x12] #MC exception handler
     __attribute__((interrupt)) void handle_mach_check(IdtFrame& frame) {
         k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_WHITE);
-        k_console.print_line("EXCEPTION [0x12] | ERRCODE 0x??"); 
+        k_console.print_line("EXCEPTION [0x12] | ERRCODE 0x??");
         print_stack_frame(frame);
         while (true);
     }
@@ -302,11 +302,11 @@ namespace idt {
 
             void add_isr(u8 const entry_num, void const* isr, u8 const flags) {
                 auto descriptor = &_entries[entry_num];
-                descriptor->m_isr_lower = reinterpret_cast<u32 const>(isr) & 0xFFFF;
+                descriptor->m_isr_low = reinterpret_cast<u32 const>(isr) & 0xFFFF;
                 descriptor->m_selector = 0x08;
                 descriptor->m_reserved = 0x0;
                 descriptor->m_flags = flags;
-                descriptor->m_isr_upper = (reinterpret_cast<u32 const>(isr) >> 16) & 0xFFFF;
+                descriptor->m_isr_high = (reinterpret_cast<u32 const>(isr) >> 16) & 0xFFFF;
             }
 
             IdtEntry& operator [] (usize const idx) { return _entries[idx]; }

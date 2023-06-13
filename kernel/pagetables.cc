@@ -5,50 +5,61 @@ using namespace allocator;
 
 extern BuddyAllocator k_allocator;
 
-auto PageDirectory::map(u32 const va, u32 const pa, u8 const perm) -> signed {
-    auto idx = va_to_index(va);
-    auto& pt = _entries[idx];
+template<typename T>
+auto PageDirectory<T>::map(u32 const va, u32 const pa, u8 const perm) -> Result<T> const {
+    auto const idx = va_to_index(va);
+    auto const& pt = _entries[idx];
     return pt.map(va, pa, perm);
 }
 
-auto PageDirectory::try_map(u32 const va, u32 const pa, u8 const perm) -> signed {
-    auto const idx = va_to_index(va);
-    auto& pt = _entries[idx];
-    if (pt.get_entry_address() == 0) {
-        auto const k = k_allocator.kmalloc(PAGESIZE);
-        if (!k) {
-            return -1;
+template<typename T>
+auto PageDirectory<T>::try_map(u32 const va, u32 const pa, u8 const perm) -> Result<T> const {
+    auto const pd_idx = va_to_index(va);
+    auto const& pd = _entries[pd_idx];
+    if (pd.get_entry_address() == 0) {
+        u32 const possible_pt = k_allocator.kmalloc(PAGESIZE);
+        if (!possible_pt) {
+            return { };
+        }
+
+        auto const res = pd.add_pagetable(possible_pt, perm).Ok;
+        if (!res) {
+            k_allocator.kfree(possible_pt);
         }
         
-        // TODO: buddy allocation
-        // 1. kalloc a page
-        // 2. if null, return -1
-        // 3. if adding pagetable fails, free everything and return -1
-        // 4. zero pages
-        // 5. return pd.trymap(va, pa, perm)
+        auto ptr = reinterpret_cast<u32*>(possible_pt);
+        auto constexpr const num_entries = PAGESIZE / sizeof(signed);
+        for (u16 i = 0; i < num_entries; ++i) {
+            *ptr = 0;
+            ++ptr;
+        }
     }
-    return -1;
+    return pd.try_map(va, pa, perm);
 }
 
-auto PageDirectory::va_to_pa(uptr const addr) const -> uptr {
+template<typename T>
+auto PageDirectory<T>::va_to_pa(uptr const addr) const -> Option<T> const {
     auto const i = va_to_index(addr);
-    auto pt = _entries[i].get_entry_pagetable();
+    auto const pt = _entries[i].get_entry_pagetable();
     if (pt.none()) {
-        return uptr(-1);
+        return { };
     }
-    return pt.unwrap().va_to_pa(addr);
+    auto const pa = pt.unwrap().va_to_pa(addr);
+    return Option<T>(pa);
 }
 
-auto PageDirectoryEntry::add_pagetable(uptr const pt_addr, u8 const perm) -> signed {
+template<typename T>
+auto PageDirectoryEntry<T>::add_pagetable(uptr const pt_addr, u8 const perm) -> Result<T> const {
     auto const entry_addr = get_entry_address();
     if (entry_addr != 0) [[unlikely]] {
-        return -1;
+        return { };
     }
     _data = pt_addr | PTE_P | PTE_W;
-    return 0;
+    return Result<T>(0);
 }
 
-void PageDirectory::set_page_directory() const {
+template<typename T>
+void PageDirectory<T>::set_page_directory() {
     __asm__ __volatile__(
         "mov %0, %%cr3;"
         :
