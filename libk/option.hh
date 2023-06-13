@@ -34,10 +34,14 @@ auto constexpr const Ok  = true;
 template<typename T>
 class Result {
     public :
-        constexpr Result(T const& value) : Ok(Ok) {}
-        constexpr Result() : Ok(Nok) {}
+        constexpr Result(T const& value) : _ok(Ok) {}
+        constexpr Result() : _ok(Nok) {}
 
-        bool Ok;
+        auto constexpr ok() -> bool { return _ok; }
+        auto constexpr nok() -> bool { return !_ok; }
+
+    private :
+        bool _ok;
 };
 
 template<typename T> Result(T) -> Result<T>;

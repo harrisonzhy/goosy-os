@@ -53,21 +53,21 @@ namespace allocator {
                 current_block = &_memory_blocks[1];
             }
 
-            auto kmalloc(usize const size) -> uptr;
+            auto kmalloc(usize const size) -> Option<uptr> const;
 
             void kfree(uptr const addr);
 
-            auto kmalloc_next_block() -> Block*;
+            auto kmalloc_next_block() -> Option<Block*> const;
 
-            auto coalesce(uptr const addr, u8 const idx) -> u8;
+            auto coalesce(uptr const addr, u8 const idx) -> u8 const;
 
-            auto find_min_free(u8 const idx) -> Block*;
+            auto find_min_free(u8 const idx) -> Option<Block*> const;
 
-            void append_block(Block* block, Block* list);
+            void push_block(Block* block, Block* list);
 
             void print_memory_map();
 
-            [[nodiscard]] auto constexpr msb(u32 const num) -> u8 {
+            [[nodiscard]] auto constexpr msb(u32 const num) -> u8 const {
                 return sizeof(num) * 8 - __builtin_clz(num) - 1;
             }
 

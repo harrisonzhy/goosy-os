@@ -17,17 +17,18 @@ auto PageDirectory<T>::try_map(u32 const va, u32 const pa, u8 const perm) -> Res
     auto const pd_idx = va_to_index(va);
     auto const& pd = _entries[pd_idx];
     if (pd.get_entry_address() == 0) {
-        u32 const possible_pt = k_allocator.kmalloc(PAGESIZE);
-        if (!possible_pt) {
+        auto possible_pt = k_allocator.kmalloc(PAGESIZE);
+        if (possible_pt.none()) {
             return { };
         }
 
-        auto const res = pd.add_pagetable(possible_pt, perm).Ok;
-        if (!res) {
-            k_allocator.kfree(possible_pt);
+        auto const pt = possible_pt.unwrap();
+        auto const res = pd.add_pagetable(pt, perm);
+        if (!res.ok) {
+            k_allocator.kfree(pt);
         }
         
-        auto ptr = reinterpret_cast<u32*>(possible_pt);
+        auto ptr = reinterpret_cast<u32*>(pt);
         auto constexpr const num_entries = PAGESIZE / sizeof(signed);
         for (u16 i = 0; i < num_entries; ++i) {
             *ptr = 0;
