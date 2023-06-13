@@ -67,10 +67,10 @@ namespace pagetables {
             constexpr Pagetable() {}
 
             // get index of the PTE with virtual address `addr' (bits 21-12)
-            auto constexpr get_pagetable_index(u32 addr) const -> usize const { return (addr & 0x3FF000) >> 12; }
+            auto constexpr get_pagetable_index(u32 addr) const -> usize { return (addr & 0x3FF000) >> 12; }
 
             // get physical address of the PTE with virtual address `addr'
-            auto constexpr va_to_pa(u32 addr) const -> uptr const { auto const idx = get_pagetable_index(addr); return _entries[idx].get_entry_address(); }
+            auto constexpr va_to_pa(u32 addr) const -> uptr { auto const idx = get_pagetable_index(addr); return _entries[idx].get_entry_address(); }
 
             constexpr PagetableEntry<T> operator [] (usize const idx) { return _entries[idx]; }
             constexpr const PagetableEntry<T> operator [] (usize const idx) const { return _entries[idx]; }
@@ -159,7 +159,7 @@ namespace pagetables {
             [[nodiscard]] auto try_map(u32 const va, u32 const pa, u8 const perm) -> Result<T> const;
 
             // get index of the PDE with virtual address `addr' (bits 21-12)
-            [[nodiscard]] auto constexpr va_to_index(uptr const addr) const -> usize const { return (addr & 0xFFC00000) >> 22; }
+            [[nodiscard]] auto constexpr va_to_index(uptr const addr) const -> usize { return (addr & 0xFFC00000) >> 22; }
 
             // get physical address of the PDE with virtual address `addr'
             auto va_to_pa(uptr const addr) const -> Option<T> const;

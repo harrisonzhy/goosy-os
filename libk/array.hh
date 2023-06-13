@@ -25,22 +25,22 @@ class Array {
         [[nodiscard]] auto constexpr penultimate() const -> iterator<T> { return iterator<T>(&m_arr[S - 1]); }
 
         [[nodiscard]] auto constexpr first() -> T& { return m_arr[0]; }
-        [[nodiscard]] auto constexpr first() const -> const T& { return m_arr[0]; }
+        [[nodiscard]] auto constexpr first() const -> T const& { return m_arr[0]; }
 
         [[nodiscard]] auto constexpr last() -> T& { return m_arr[S - 1]; }
-        [[nodiscard]] auto constexpr last() const -> const T& { return m_arr[S - 1]; }
+        [[nodiscard]] auto constexpr last() const -> T const& { return m_arr[S - 1]; }
 
         [[nodiscard]] auto constexpr data() -> T* { return &m_arr[0]; }
-        [[nodiscard]] auto constexpr data() const -> const T* { return &m_arr[0]; }
+        [[nodiscard]] auto constexpr data() const -> T const* { return &m_arr[0]; }
 
-        [[nodiscard]] auto constexpr at(usize i) const -> Option<T> {
+        [[nodiscard]] auto constexpr at(usize i) const -> Option<T> const {
             if (i < S) {
                 return { m_arr[i] };
             }
             return { }; // check for out-of-bounds access
         }
         
-        [[nodiscard]] auto constexpr get(usize i) const -> Option<T> { return at(i); }
+        [[nodiscard]] auto constexpr get(usize i) const -> Option<T> const { return at(i); }
 
         auto constexpr operator [] (usize i) -> T& { return m_arr[i]; };
         auto constexpr operator [] (usize i) const -> T const& { return m_arr[i]; };

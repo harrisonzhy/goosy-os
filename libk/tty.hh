@@ -12,6 +12,7 @@ namespace console {
                 ports::outb(CURSOR_OFFSET, CURSOR_START);
                 ports::outb(CURSOR_CONTROL, CURSOR_SHAPE);
                 ports::outb(CURSOR_OFFSET, CURSOR_START);
+                
                 // reserve upper two bits
                 auto existing = ports::inb(CURSOR_CONTROL) & 0xC;
                 // enable cursor by setting bit 5 to 0, and set start position to 0
@@ -30,10 +31,13 @@ namespace console {
                 ports::outb(0x3D4, 0xE);
                 ports::outb(0x3D5, (u8 const)((pos >> 8) & 0xFF));
             }
+            
+            inline __attribute__((always_inline)) void switch_color(vga_color const fg, vga_color const bg) {
+                _fg = fg;
+                _bg = bg;
+            }
 
             void clear();
-            
-            void switch_color(vga_color const fg, vga_color const bg);
 
             // `print(...)' overloads
             void print();

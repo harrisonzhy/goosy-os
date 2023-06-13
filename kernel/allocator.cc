@@ -186,18 +186,35 @@ void BuddyAllocator::print_memory_map() {
         auto it = _allocated_blocks[i].m_next;
         k_console.print(i, "  ");
         while (it) {
-            k_console.print("[", it->allocatable(), "]");
+            auto const allocatable = it->allocatable();
+            if (allocatable) {
+                k_console.switch_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
+            }
+            else {
+                k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
+            }
+            k_console.print("[", allocatable, "]");
             it = it->m_next;
         }
+        k_console.switch_color(Console::DEFAULT_FG, Console::DEFAULT_BG);
         k_console.print("\n");
     }
     for (u8 i = 10; i < NUM_ENTRIES_ALLOC; ++i) {
         auto it = _allocated_blocks[i].m_next;
         k_console.print(i, " ");
+        k_console.switch_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
         while (it) {
-            k_console.print("[", it->allocatable(), "]");
+            auto const allocatable = it->allocatable();
+            if (allocatable) {
+                k_console.switch_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
+            }
+            else {
+                k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
+            }
+            k_console.print("[", allocatable, "]");
             it = it->m_next;
         }
+        k_console.switch_color(Console::DEFAULT_FG, Console::DEFAULT_BG);
         k_console.print("\n");
     }
 }

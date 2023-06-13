@@ -128,11 +128,6 @@ namespace console {
         update_cursor(_current_row, _current_column);
     }
 
-    void Console::switch_color(vga_color const fg, vga_color const bg) {
-        _fg = fg;
-        _bg = bg;
-    }
-
     void Console::put(char const c) { put_char(c); }
     void Console::put(signed const& num) { put(u32(num)); }
     void Console::put(u16 const num) { put(u32(num)); }

@@ -63,7 +63,7 @@ namespace allocator {
 
             auto find_min_free(u8 const idx) -> Option<Block*> const;
 
-            void push_block(Block* block, Block* list);
+            void push_block(Block* block, Block* root);
 
             void print_memory_map();
 
@@ -72,9 +72,9 @@ namespace allocator {
             }
 
         private :
-            usize static constexpr const NUM_ENTRIES_MEM = 0x32;
+            usize static constexpr const NUM_ENTRIES_MEM   = 0x32;
             usize static constexpr const NUM_ENTRIES_ALLOC = 0x15;
-            usize static constexpr const MAX_ALLOC_SIZE = 0x8000000;
+            usize static constexpr const MAX_ALLOC_SIZE    = 0x8000000;
 
             u32 static constexpr const MIN_ADDRESS = 0x200000;
             u32 static constexpr const MAX_ADDRESS = 0xFFFFFFFF;
