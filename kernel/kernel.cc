@@ -29,5 +29,5 @@ extern "C" void main() {
     k_allocator.kfree(a5);
 
     k_allocator.print_memory_map();
-    // k_console.print(3 / 0);
+	k_console.print(3 / 0);
 }

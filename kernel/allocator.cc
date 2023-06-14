@@ -191,7 +191,7 @@ void BuddyAllocator::print_memory_map() {
                 k_console.switch_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
             }
             else {
-                k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
+                k_console.switch_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK);
             }
             k_console.print("[", allocatable, "]");
             it = it->m_next;
@@ -209,7 +209,7 @@ void BuddyAllocator::print_memory_map() {
                 k_console.switch_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
             }
             else {
-                k_console.switch_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
+                k_console.switch_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK);
             }
             k_console.print("[", allocatable, "]");
             it = it->m_next;
