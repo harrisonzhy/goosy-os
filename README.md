@@ -1,3 +1,3 @@
 # GoosyOS
 
-Experimental 32-bit operating system built entirely from scratch.
+Experimental 32-bit operating system built from scratch.
